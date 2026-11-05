@@ -1,0 +1,31 @@
+name: Bug report
+description: Report a reproducible panel problem
+title: "[Bug] "
+body:
+  - type: markdown
+    attributes:
+      value: Use synthetic notifications and redact captures/logs. Report sensitive security issues using SECURITY.md.
+  - type: input
+    id: environment
+    attributes:
+      label: Device, ROM and Android version
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: App version and build source
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Reproduction, expected and actual behavior
+      description: Include navigation mode, separate/combined shade, fullscreen state and relevant experiment settings.
+    validations:
+      required: true
+  - type: textarea
+    id: validation
+    attributes:
+      label: Redacted evidence and service behavior
+      description: Does the service recover after unlock? Does the native right-side panel work?

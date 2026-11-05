@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="gib_background_top">#FF242424</color>
+    <color name="gib_background_bottom">#FF242424</color>
+    <color name="gib_accent">#FFCCCCCC</color>
+    <color name="gib_text_primary">#FFF0F0F0</color>
+    <color name="gib_text_secondary">#FFBDBDBD</color>
+</resources>

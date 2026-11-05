@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="panel_config_open_tile_picker">+ Añadir baldosas</string>
+    <string name="panel_config_tile_picker_title">Añadir baldosas</string>
+    <string name="panel_config_tile_picker_explanation">Toca una baldosa para añadirla. Las baldosas activas pueden reordenarse después en la lista principal.</string>
+    <string name="panel_config_tile_picker_panosp">Baldosas PanOSP disponibles</string>
+    <string name="panel_config_layout">Disposición</string>
+    <string name="panel_config_selected_tiles">Baldosas visibles</string>
+<string name="panel_config_columns">Columnas</string>
+    <string name="panel_config_rows">Filas máximas</string>
+    <string name="panel_config_tile_size">Tamaño de baldosa (dp)</string>
+    <string name="panel_config_corner_radius">Radio de esquinas (dp)</string>
+    <string name="panel_config_panel_opacity">Opacidad del panel (%)</string>
+    <string name="panel_config_notification_text_size">Texto de notificaciones (sp)</string>
+    <string name="panel_config_shape">Forma de baldosa</string>
+    <string name="panel_config_shape_circle">Círculo</string>
+    <string name="panel_config_shape_rounded">Cuadrado redondeado</string>
+    <string name="panel_config_shape_square">Cuadrado</string>
+
+<string name="panel_config_keep_one_tile">Mantén al menos una baldosa visible.</string>
+    <string name="panel_config_all_tiles_selected">Todas las baldosas PanOSP disponibles ya están visibles.</string>
+    <string name="panel_config_reset">Restablecer disposición del panel</string>
+    <string name="panel_config_content_description">Configurar panel PanOSP</string>
+    <string name="panel_config_reorder_hint">Mantén pulsado ≡ y arrastra una baldosa para reordenarla.</string>
+    <string name="panel_config_drag">Arrastrar %1$s para reordenar</string>
+
+<string name="panel_config_remove">Eliminar %1$s</string>
+    <string name="panel_config_add">Añadir %1$s</string>
+    <string name="panel_config_notification_background_opacity">Opacidad del fondo de las notificaciones (%)</string>
+    <string name="panel_config_panel_corner_radius">Radio de esquinas del panel (dp)</string>
+    <string name="panel_config_value">%1$s: %2$d</string>
+    <string name="panel_config_reset_success">Configuración restablecida</string>
+</resources>

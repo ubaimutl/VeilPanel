@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="panel_config_open_tile_picker">+ Ajouter des tuiles</string>
+    <string name="panel_config_tile_picker_title">Ajouter des tuiles</string>
+    <string name="panel_config_tile_picker_explanation">Touchez une tuile pour l’ajouter. Les tuiles actives se réordonnent ensuite dans la liste principale.</string>
+    <string name="panel_config_tile_picker_panosp">Tuiles PanOSP disponibles</string>
+    <string name="panel_config_layout">Disposition</string>
+    <string name="panel_config_selected_tiles">Tuiles visibles</string>
+<string name="panel_config_columns">Colonnes</string>
+    <string name="panel_config_rows">Lignes maximales</string>
+    <string name="panel_config_tile_size">Taille des tuiles (dp)</string>
+    <string name="panel_config_corner_radius">Rayon des angles (dp)</string>
+    <string name="panel_config_panel_opacity">Opacité du panneau (%)</string>
+    <string name="panel_config_notification_text_size">Texte des notifications (sp)</string>
+    <string name="panel_config_shape">Forme des tuiles</string>
+    <string name="panel_config_shape_circle">Cercle</string>
+    <string name="panel_config_shape_rounded">Carré arrondi</string>
+    <string name="panel_config_shape_square">Carré</string>
+    <string name="panel_config_value">%1$s : %2$d</string>
+
+
+<string name="panel_config_keep_one_tile">Conservez au moins une tuile visible.</string>
+    <string name="panel_config_all_tiles_selected">Toutes les tuiles PanOSP disponibles sont déjà visibles.</string>
+    <string name="panel_config_reset">Réinitialiser la disposition</string>
+    <string name="panel_config_content_description">Configurer le panneau PanOSP</string>
+    <string name="panel_config_reorder_hint">Maintenez ≡ puis faites glisser une tuile pour la réordonner.</string>
+    <string name="panel_config_drag">Faire glisser %1$s pour réordonner</string>
+
+<string name="panel_config_remove">Retirer %1$s</string>
+    <string name="panel_config_add">Ajouter %1$s</string>
+    <string name="panel_config_notification_background_opacity">Opacité du fond des notifications (%)</string>
+    <string name="panel_config_panel_corner_radius">Arrondi du panneau (dp)</string>
+    <string name="panel_config_reset_success">Configuration réinitialisée</string>
+</resources>

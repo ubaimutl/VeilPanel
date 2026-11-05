@@ -1,0 +1,85 @@
+pluginManagement {
+    repositories {
+        google()
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
+
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
+
+rootProject.name = "VeilPanel"
+include ':app'
+
+// Versioned local EMP snapshot.
+// PanOSP must compile without a sibling GibModules checkout.
+def modulesRoot = file('modules/GibModules')
+
+if (!modulesRoot.isDirectory()) {
+    throw new GradleException(
+            "Missing local EMP snapshot: modules/GibModules"
+    )
+}
+
+def verifyEmpManifest = { String manifestPath ->
+    file(manifestPath).eachLine { line ->
+        if (!line.trim().isEmpty()) {
+            def entry = line.split('  ', 2)
+
+            if (entry.length != 2) {
+                throw new GradleException(
+                        "Invalid EMP manifest entry in ${manifestPath}: ${line}"
+                )
+            }
+
+            def source = new File(
+                    modulesRoot,
+                    entry[1]
+            )
+
+            if (!source.isFile()) {
+                throw new GradleException(
+                        "Missing local EMP source: ${source}"
+                )
+            }
+
+            def digest =
+                    java.security.MessageDigest
+                            .getInstance('SHA-256')
+                            .digest(source.bytes)
+                            .encodeHex()
+                            .toString()
+
+            if (digest != entry[0]) {
+                throw new GradleException(
+                        "Local EMP source changed: ${entry[1]}; "
+                        + "validate before updating ${manifestPath}"
+                )
+            }
+        }
+    }
+}
+
+verifyEmpManifest('emp/colorpicker.sha256')
+
+include ':colorpicker-android'
+project(':colorpicker-android').projectDir =
+        new File(
+                modulesRoot,
+                'colorpicker-android'
+        )
+
+verifyEmpManifest('emp/gib-ui.sha256')
+
+include ':gib-ui-android'
+project(':gib-ui-android').projectDir =
+        new File(
+                modulesRoot,
+                'gib-ui-android'
+        )

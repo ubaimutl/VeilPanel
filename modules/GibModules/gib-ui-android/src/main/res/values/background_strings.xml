@@ -1,0 +1,17 @@
+<resources>
+    <string name="gib_ui_background_type">Background type</string>
+    <string name="gib_ui_background_solid">Solid</string>
+    <string name="gib_ui_background_gradient">Gradient</string>
+    <string name="gib_ui_background_color_1">Color 1</string>
+    <string name="gib_ui_background_color_2">Color 2</string>
+    <string name="gib_ui_background_gradient_type">Gradient type</string>
+    <string name="gib_ui_background_cancel">Cancel</string>
+    <string name="gib_ui_background_ok">OK</string>
+    <string name="gib_ui_background_top_bottom">Top → bottom</string>
+    <string name="gib_ui_background_left_right">Left → right</string>
+    <string name="gib_ui_background_bottom_top">Bottom → top</string>
+    <string name="gib_ui_background_right_left">Right → left</string>
+    <string name="gib_ui_background_center_out">Radial center → outside</string>
+    <string name="gib_ui_background_out_center">Radial outside → center</string>
+    <string name="gib_ui_background_hue">Hue</string>
+</resources>

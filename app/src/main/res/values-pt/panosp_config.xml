@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="panel_config_open_tile_picker">+ Adicionar mosaicos</string>
+    <string name="panel_config_tile_picker_title">Adicionar mosaicos</string>
+    <string name="panel_config_tile_picker_explanation">Toque num mosaico para o adicionar. Os mosaicos ativos podem depois ser reordenados na lista principal.</string>
+    <string name="panel_config_tile_picker_panosp">Mosaicos PanOSP disponíveis</string>
+    <string name="panel_config_layout">Disposição</string>
+    <string name="panel_config_selected_tiles">Mosaicos visíveis</string>
+<string name="panel_config_columns">Colunas</string>
+    <string name="panel_config_rows">Máximo de linhas</string>
+    <string name="panel_config_tile_size">Tamanho do mosaico (dp)</string>
+    <string name="panel_config_corner_radius">Raio dos cantos (dp)</string>
+    <string name="panel_config_panel_opacity">Opacidade do painel (%)</string>
+    <string name="panel_config_notification_text_size">Texto das notificações (sp)</string>
+    <string name="panel_config_shape">Forma do mosaico</string>
+    <string name="panel_config_shape_circle">Círculo</string>
+    <string name="panel_config_shape_rounded">Quadrado arredondado</string>
+    <string name="panel_config_shape_square">Quadrado</string>
+
+<string name="panel_config_keep_one_tile">Mantenha pelo menos um mosaico visível.</string>
+    <string name="panel_config_all_tiles_selected">Todos os mosaicos PanOSP disponíveis já estão visíveis.</string>
+    <string name="panel_config_reset">Repor disposição do painel</string>
+    <string name="panel_config_content_description">Configurar painel PanOSP</string>
+    <string name="panel_config_reorder_hint">Mantenha ≡ premido e arraste um mosaico para o reordenar.</string>
+    <string name="panel_config_drag">Arrastar %1$s para reordenar</string>
+
+<string name="panel_config_remove">Remover %1$s</string>
+    <string name="panel_config_add">Adicionar %1$s</string>
+    <string name="panel_config_notification_background_opacity">Opacidade do fundo das notificações (%)</string>
+    <string name="panel_config_panel_corner_radius">Raio dos cantos do painel (dp)</string>
+    <string name="panel_config_value">%1$s: %2$d</string>
+    <string name="panel_config_reset_success">Configuração restaurada</string>
+</resources>

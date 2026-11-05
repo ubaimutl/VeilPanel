@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<accessibility-service xmlns:android="http://schemas.android.com/apk/res/android"
+ android:description="@string/accessibility_description" android:summary="@string/accessibility_summary"
+ android:settingsActivity="com.ubai.veilpanel.MainActivity"
+ android:accessibilityEventTypes="typeWindowStateChanged|typeWindowContentChanged"
+ android:packageNames="com.android.systemui"
+ android:accessibilityFeedbackType="feedbackGeneric" android:notificationTimeout="80"
+ android:canRetrieveWindowContent="false" android:canPerformGestures="true" />

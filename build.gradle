@@ -1,0 +1,13 @@
+plugins {
+    id 'com.android.application' version '9.4.1' apply false
+    id 'com.android.library' version '9.4.1' apply false
+}
+
+// Isolate EMP outputs from other consumers and the common checkout.
+project(':colorpicker-android') {
+    layout.buildDirectory.set(rootProject.layout.buildDirectory.dir('emp/colorpicker-android'))
+}
+
+project(':gib-ui-android') {
+    layout.buildDirectory.set(rootProject.layout.buildDirectory.dir('emp/gib-ui-android'))
+}

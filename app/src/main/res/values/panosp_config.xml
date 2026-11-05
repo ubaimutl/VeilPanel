@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="panel_config_open_tile_picker">+ Add tiles</string>
+    <string name="panel_config_tile_picker_title">Add tiles</string>
+    <string name="panel_config_tile_picker_explanation">Tap a tile to add it. Active tiles can then be reordered in the main list.</string>
+    <string name="panel_config_tile_picker_panosp">Available PanOSP tiles</string>
+    <string name="panel_config_layout">Layout</string>
+    <string name="panel_config_selected_tiles">Visible tiles</string>
+<string name="panel_config_columns">Columns</string>
+    <string name="panel_config_rows">Maximum rows</string>
+    <string name="panel_config_tile_size">Tile size (dp)</string>
+    <string name="panel_config_corner_radius">Corner radius (dp)</string>
+    <string name="panel_config_panel_opacity">Panel opacity (%)</string>
+    <string name="panel_config_notification_text_size">Notification text (sp)</string>
+    <string name="panel_config_shape">Tile shape</string>
+    <string name="panel_config_shape_circle">Circle</string>
+    <string name="panel_config_shape_rounded">Rounded square</string>
+    <string name="panel_config_shape_square">Square</string>
+    <string name="panel_config_value">%1$s: %2$d</string>
+
+
+<string name="panel_config_keep_one_tile">Keep at least one visible tile.</string>
+    <string name="panel_config_all_tiles_selected">All available PanOSP tiles are already visible.</string>
+    <string name="panel_config_reset">Reset panel layout</string>
+    <string name="panel_config_content_description">Configure PanOSP panel</string>
+    <string name="panel_config_reorder_hint">Long-press ≡ and drag a tile to reorder it.</string>
+    <string name="panel_config_drag">Drag %1$s to reorder</string>
+
+<string name="panel_config_remove">Remove %1$s</string>
+    <string name="panel_config_add">Add %1$s</string>
+    <string name="panel_config_notification_background_opacity">Notification background opacity (%)</string>
+    <string name="panel_config_panel_corner_radius">Panel corner radius (dp)</string>
+    <string name="panel_config_reset_success">Configuration reset</string>
+</resources>

@@ -1,0 +1,17 @@
+Veil Panel
+
+Derived from PanOSP by its original authors (GibDev / GibApps).
+Upstream: https://gitlab.com/gibdev-group/gibapps/panosp
+Fork baseline: b59224e28d9a2a2c867dbb21bf8850a584779037
+
+Veil Panel modifications and documentation: copyright 2026 Veil Panel contributors.
+The project is distributed under GNU GPL version 3 or later. The complete
+license text is in LICENSE. Existing upstream notices remain applicable.
+
+Separately licensed components retain their own notices and terms:
+- GibModules snapshots: Apache License 2.0.
+- AndroidLiquidGlass / Backdrop shaders, copyright 2025 Kyant: Apache License 2.0.
+- Josefin Sans font: SIL Open Font License 1.1.
+- AndroidX libraries: Apache License 2.0.
+
+See THIRD_PARTY_NOTICES.md for provenance and license-file locations.

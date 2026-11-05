@@ -1,0 +1,17 @@
+<resources>
+    <string name="gib_ui_background_type">Type de fond</string>
+    <string name="gib_ui_background_solid">Uni</string>
+    <string name="gib_ui_background_gradient">Dégradé</string>
+    <string name="gib_ui_background_color_1">Couleur 1</string>
+    <string name="gib_ui_background_color_2">Couleur 2</string>
+    <string name="gib_ui_background_gradient_type">Type de dégradé</string>
+    <string name="gib_ui_background_cancel">Annuler</string>
+    <string name="gib_ui_background_ok">OK</string>
+    <string name="gib_ui_background_top_bottom">Haut → bas</string>
+    <string name="gib_ui_background_left_right">Gauche → droite</string>
+    <string name="gib_ui_background_bottom_top">Bas → haut</string>
+    <string name="gib_ui_background_right_left">Droite → gauche</string>
+    <string name="gib_ui_background_center_out">Radial centre → extérieur</string>
+    <string name="gib_ui_background_out_center">Radial extérieur → centre</string>
+    <string name="gib_ui_background_hue">Teinte</string>
+</resources>

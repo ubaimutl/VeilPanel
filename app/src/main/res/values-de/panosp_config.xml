@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="panel_config_open_tile_picker">+ Kacheln hinzufügen</string>
+    <string name="panel_config_tile_picker_title">Kacheln hinzufügen</string>
+    <string name="panel_config_tile_picker_explanation">Tippe auf eine Kachel, um sie hinzuzufügen. Aktive Kacheln können anschließend in der Hauptliste neu angeordnet werden.</string>
+    <string name="panel_config_tile_picker_panosp">Verfügbare PanOSP-Kacheln</string>
+    <string name="panel_config_layout">Layout</string>
+    <string name="panel_config_selected_tiles">Sichtbare Kacheln</string>
+<string name="panel_config_columns">Spalten</string>
+    <string name="panel_config_rows">Maximale Zeilen</string>
+    <string name="panel_config_tile_size">Kachelgröße (dp)</string>
+    <string name="panel_config_corner_radius">Eckenradius (dp)</string>
+    <string name="panel_config_panel_opacity">Panel-Deckkraft (%)</string>
+    <string name="panel_config_notification_text_size">Benachrichtigungstext (sp)</string>
+    <string name="panel_config_shape">Kachelform</string>
+    <string name="panel_config_shape_circle">Kreis</string>
+    <string name="panel_config_shape_rounded">Abgerundetes Quadrat</string>
+    <string name="panel_config_shape_square">Quadrat</string>
+
+<string name="panel_config_keep_one_tile">Mindestens eine sichtbare Kachel beibehalten.</string>
+    <string name="panel_config_all_tiles_selected">Alle verfügbaren PanOSP-Kacheln sind bereits sichtbar.</string>
+    <string name="panel_config_reset">Panel-Layout zurücksetzen</string>
+    <string name="panel_config_content_description">PanOSP-Panel konfigurieren</string>
+    <string name="panel_config_reorder_hint">Halte ≡ gedrückt und ziehe eine Kachel, um sie neu anzuordnen.</string>
+    <string name="panel_config_drag">%1$s zum Neuordnen ziehen</string>
+
+<string name="panel_config_remove">%1$s entfernen</string>
+    <string name="panel_config_add">%1$s hinzufügen</string>
+    <string name="panel_config_notification_background_opacity">Deckkraft des Benachrichtigungshintergrunds (%)</string>
+    <string name="panel_config_panel_corner_radius">Eckenradius des Panels (dp)</string>
+    <string name="panel_config_value">%1$s: %2$d</string>
+    <string name="panel_config_reset_success">Konfiguration zurückgesetzt</string>
+</resources>

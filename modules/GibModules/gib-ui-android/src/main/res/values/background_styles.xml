@@ -1,0 +1,11 @@
+<resources>
+    <!-- PanOSP selector palette; local to this component, not a navigation theme. -->
+    <color name="gib_ui_background_dialog">#303030</color>
+    <color name="gib_ui_background_text_primary">#FFF8F0</color>
+    <color name="gib_ui_background_text_secondary">#C8CFD8</color>
+    <style name="GibUi.BackgroundDialog" parent="android:style/Theme.Material.Dialog.Alert">
+        <item name="android:textColorPrimary">@color/gib_ui_background_text_primary</item>
+        <item name="android:textColorSecondary">@color/gib_ui_background_text_secondary</item>
+        <item name="android:windowNoTitle">true</item>
+    </style>
+</resources>

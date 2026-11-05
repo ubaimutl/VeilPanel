@@ -1,0 +1,17 @@
+<resources>
+    <string name="gib_ui_background_type">Tipo di sfondo</string>
+    <string name="gib_ui_background_solid">Uniforme</string>
+    <string name="gib_ui_background_gradient">Sfumatura</string>
+    <string name="gib_ui_background_color_1">Colore 1</string>
+    <string name="gib_ui_background_color_2">Colore 2</string>
+    <string name="gib_ui_background_gradient_type">Tipo di sfumatura</string>
+    <string name="gib_ui_background_cancel">Annulla</string>
+    <string name="gib_ui_background_ok">OK</string>
+    <string name="gib_ui_background_top_bottom">Alto → basso</string>
+    <string name="gib_ui_background_left_right">Sinistra → destra</string>
+    <string name="gib_ui_background_bottom_top">Basso → alto</string>
+    <string name="gib_ui_background_right_left">Destra → sinistra</string>
+    <string name="gib_ui_background_center_out">Radiale centro → esterno</string>
+    <string name="gib_ui_background_out_center">Radiale esterno → centro</string>
+    <string name="gib_ui_background_hue">Tonalità</string>
+</resources>

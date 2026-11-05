@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Additional quick-settings tiles, block 2. -->
+    <string name="tile_location">Location</string>
+    <string name="tile_hotspot">Hotspot</string>
+    <string name="tile_airplane">Airplane mode</string>
+    <string name="tile_dnd">Do Not Disturb</string>
+    <string name="tile_battery_saver">Battery Saver</string>
+
+    <!-- Used when a tile remains useful as a settings shortcut but Android
+         does not expose a reliable public ON/OFF state on this API level. -->
+    <string name="tile_state_settings">Réglages</string>
+</resources>

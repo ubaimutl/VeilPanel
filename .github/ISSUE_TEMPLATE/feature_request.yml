@@ -1,0 +1,15 @@
+name: Feature request
+description: Suggest a focused improvement
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem and desired behavior
+      description: Explain the use case and relevant device restrictions.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives and permission requirements
+      description: Check the limitations and contribution policy first. This project provides notifications with native quick-settings handoff.

@@ -1,0 +1,5 @@
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+ <shortcut android:shortcutId="open_notifications" android:enabled="true" android:icon="@drawable/ic_shortcut_notifications" android:shortcutShortLabel="@string/shortcut_open_notifications" android:shortcutLongLabel="@string/shortcut_open_notifications_long">
+  <intent android:action="com.ubai.veilpanel.OPEN_NOTIFICATIONS" android:targetPackage="com.ubai.veilpanel" android:targetClass="com.ubai.veilpanel.PanelShortcutActivity" />
+ </shortcut>
+</shortcuts>

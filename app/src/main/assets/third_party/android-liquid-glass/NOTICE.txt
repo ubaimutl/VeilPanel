@@ -1,0 +1,9 @@
+AndroidLiquidGlass / Backdrop
+Copyright 2025 Kyant
+Apache License 2.0
+Source: https://github.com/Kyant0/AndroidLiquidGlass
+Pinned source revision: 65ab177e90e5c1d8c62e70cf7755841982da65f6
+
+The rounded rectangle refraction-with-dispersion and default highlight shaders are extracted from backdrop/src/commonMain/kotlin/com/kyant/backdrop/internal/Shaders.kt. Kotlin string interpolation of the common SDF is expanded; the shader algorithms are unchanged.
+
+Veil adapts these shaders to Android Views and samples only the user-selected panel wallpaper. It does not embed the Compose library or capture other apps. Native wrapper, wallpaper alignment, tint and lifecycle handling are Veil-specific.

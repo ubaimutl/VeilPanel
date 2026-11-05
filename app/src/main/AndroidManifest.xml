@@ -1,0 +1,77 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+<!-- ================================================================ -->
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    <!-- PUBLIC / USER-GRANTED CAPABILITIES                               -->
+    <!-- ================================================================ -->
+
+<queries><intent><action android:name="android.intent.action.MAIN"/><category android:name="android.intent.category.LAUNCHER"/></intent></queries>
+    <application
+        android:icon="@mipmap/ic_launcher"
+        android:allowBackup="false"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme"
+        android:localeConfig="@xml/locales_config">
+
+        <!-- ============================================================ -->
+        <!-- SETUP / CONFIGURATION                                        -->
+        <!-- ============================================================ -->
+
+        <activity android:name=".SettingsTransferActivity" android:exported="false" />
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <meta-data android:name="android.app.shortcuts" android:resource="@xml/shortcuts" />
+        </activity>
+        <activity android:name=".PanelShortcutActivity" android:label="@string/shortcut_provider_label" android:exported="true" android:excludeFromRecents="true" android:taskAffinity="" android:theme="@android:style/Theme.NoDisplay">
+          <intent-filter><action android:name="android.intent.action.CREATE_SHORTCUT" /><category android:name="android.intent.category.DEFAULT" /></intent-filter>
+        </activity>
+
+        <!-- ============================================================ -->
+        <!-- SYSTEM INTEGRATION                                           -->
+        <!-- ============================================================ -->
+
+        <!--
+            Keep this component name stable across refactors. HyperOS/Android
+            stores the user's accessibility grant against this component.
+        -->
+        <service
+            android:name=".PanOSPAccessibilityService"
+            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE"
+            android:exported="false">
+
+            <intent-filter>
+                <action android:name="android.accessibilityservice.AccessibilityService" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.accessibilityservice"
+                android:resource="@xml/accessibility_service_config" />
+
+        </service>
+
+        <service
+            android:name=".notifications.PanOSPNotificationListener"
+            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE"
+            android:exported="false">
+
+            <intent-filter>
+                <action android:name="android.service.notification.NotificationListenerService" />
+            </intent-filter>
+
+        </service>
+
+        <activity android:name=".image.ImageCropActivity" android:exported="false" />
+        <activity android:name=".ReplyActivity" android:exported="false" android:excludeFromRecents="true" android:windowSoftInputMode="adjustResize" />
+        <activity android:name=".WallpaperBackdropActivity" android:exported="false" android:excludeFromRecents="true"
+          android:launchMode="singleTask" android:taskAffinity="com.ubai.veilpanel.backdrop" android:theme="@style/WallpaperPanelTheme" />
+    </application>
+
+</manifest>

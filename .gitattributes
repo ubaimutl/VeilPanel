@@ -1,0 +1,11 @@
+* text=auto
+*.java text eol=lf
+*.md text eol=lf
+*.yml text eol=lf
+*.svg text eol=lf
+gradlew text eol=lf
+gradlew.bat text eol=crlf
+*.png binary
+*.jpg binary
+*.ttf binary
+*.jar binary

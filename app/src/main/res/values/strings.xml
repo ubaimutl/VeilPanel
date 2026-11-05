@@ -1,0 +1,114 @@
+<resources>
+
+    <!--
+        English is the source locale.
+        Future translations belong in values-fr, values-es, values-it, etc.
+        User-visible text must not be hard-coded in Java.
+    -->
+
+    <string name="app_name">Veil Panel</string>
+    <string name="shortcut_open_notifications">Open notifications</string>
+    <string name="shortcut_open_notifications_long">Open Veil Panel notifications</string>
+    <string name="shortcut_provider_label">Veil Panel notifications</string>
+    <string name="shortcut_enable_service">Enable Veil Panel in Accessibility to open notifications.</string>
+
+    <!-- Accessibility service -->
+    <string name="accessibility_description">Shows Veil notifications from the top-left and opens original quick settings with a top-right swipe. Uses gesture control for this handoff; does not read screen content.</string>
+    <string name="accessibility_summary">Top-edge gestures and the Veil notification panel.</string>
+
+    <!-- First-run / setup -->
+    <string name="advanced_permissions_explanation">A custom notification panel over your apps. Pull down on the left for notifications; the right side keeps your original REDMAGIC quick settings.
+
+Accessibility handles the top-edge gesture. Notification access displays your alerts. Your data stays on this device; this app has no Internet permission.
+
+Only Accessibility and Notification access are needed. No root or Shizuku is required.</string>
+
+    <string name="setup_accessibility">Accessibility service</string>
+    <string name="setup_notification_access">Notification access</string>
+    <string name="setup_write_settings">Modify system settings</string>
+    <string name="setup_camera_permission">Camera access for flashlight</string>
+    <string name="setup_bluetooth_permission">Nearby device access for Bluetooth state</string>
+    <string name="setup_item_status">%1$s: %2$s</string>
+    <string name="status_enabled">Enabled</string>
+    <string name="status_required">Required</string>
+
+    <string name="setup_hyperos_note">For reliable background operation, allow unrestricted battery use. The lock screen keeps the original Android panel.</string>
+
+    <!-- Quick Settings -->
+    <string name="tile_wifi">Wi-Fi</string>
+    <string name="tile_mobile_data">Mobile data</string>
+    <string name="tile_bluetooth">Bluetooth</string>
+    <string name="tile_flashlight">Flashlight</string>
+    <string name="tile_rotation">Auto-rotate</string>
+
+    <!-- NEW TILES - TEMPORARY TEST GROUP -->
+    <string name="tile_nfc">NFC</string>
+    <string name="tile_dark_mode">Dark mode</string>
+    <string name="tile_silent">Silent</string>
+    <string name="tile_vibrate">Vibrate</string>
+    <string name="tile_reading_mode">Reading mode</string>
+    <string name="tile_screenshot">Screenshot</string>
+    <string name="tile_camera">Camera</string>
+
+    <string name="tile_state_on">ON</string>
+    <string name="tile_state_off">OFF</string>
+    <string name="tile_state_unavailable">Unavailable</string>
+
+    <!-- Brightness -->
+<string name="auto_brightness_on">AUTO ON</string>
+    <string name="auto_brightness_off">AUTO OFF</string>
+    <string name="settings_required">Grant access</string>
+
+    <!-- Notifications -->
+    <string name="notifications_header">Notifications</string>
+    <string name="notifications_empty">No notifications</string>
+
+
+    <string name="panel_config_theme_colors">Theme and colors</string>
+    <string name="panel_config_theme_preview">Preview</string>
+    <string name="panel_config_theme_background">BG</string>
+    <string name="panel_config_theme_accent">Accent</string>
+    <string name="panel_config_theme_primary">Text</string>
+    <string name="panel_config_theme_secondary">Text 2</string>
+    <string name="panel_config_theme_notification_preview">Veil Panel notification\nSecondary text preview</string>
+    <string name="panel_config_theme_saved">Theme saved</string>
+
+    <string name="panel_config_background_image_choose">Choose background image</string>
+    <string name="panel_config_background_image_remove">Remove background image</string>
+    <string name="panel_config_background_image_opacity">Background image opacity (%)</string>
+    <string name="system_settings_content_description">Android settings</string>
+    <string name="app_language">App language</string>
+    <string name="app_language_value">Language: %1$s</string>
+    <string name="language_system">System default</string>
+    <string name="panel_config_export">Export configuration</string>
+    <string name="panel_config_import">Import configuration</string>
+    <string name="panel_config_export_success">Configuration exported.</string>
+    <string name="panel_config_export_failed">Configuration export failed.</string>
+    <string name="panel_config_import_success">Configuration imported.</string>
+    <string name="panel_config_import_failed">Configuration import failed or the file is not a supported Veil Panel configuration.</string>
+    <string name="panel_config_background_unavailable">Veil Panel no longer has permission to access the background image. Select it again to restore access.</string>
+    <string name="panel_config_background_reselect">Select image</string>
+    <string name="panel_config_background_later">Later</string>
+    <string name="panel_config_brightness_preview" translatable="false">☀   65 %</string>
+    <string name="tile_page_indicator" translatable="false">%1$d / %2$d</string>
+    <string name="crop_cancel">Cancel</string>
+    <string name="crop_validate">Validate</string>
+
+    <string name="notification_expand">Expand</string>
+    <string name="notification_collapse">Collapse</string>
+    <string name="notification_settings_unavailable">Notification settings unavailable for this profile or application</string>
+    <string name="notification_action_unlock">Unlock the device to use this action</string>
+    <string name="notification_action_failed">This notification action could not be sent</string>
+    <string name="panel_config_backup_reset_tab">General</string>
+    <string name="panel_config_configuration_heading">Configuration</string>
+    <string name="panel_config_background_color_1_summary">Solid background color, or first gradient color (radial center)</string>
+    <string name="panel_config_background_color_2_summary">Second gradient color (radial edges)</string>
+    <string name="panel_config_theme_accent_summary">Choose the color used for active controls and section titles</string>
+    <string name="veil_quick_settings" translatable="false">Quick settings</string>
+    <string name="veil_notifications" translatable="false">Notifications</string>
+    <string name="veil_clear_all" translatable="false">Clear all</string>
+    <string name="veil_close" translatable="false">Close panel</string>
+    <string name="veil_send" translatable="false">Send</string>
+    <string name="veil_reply_hint" translatable="false">Write a reply</string>
+    <string name="veil_reply_failed" translatable="false">Could not send. The notification may have expired.</string>
+</resources>

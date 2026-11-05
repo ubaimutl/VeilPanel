@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="panel_config_open_tile_picker">+ Aggiungi riquadri</string>
+    <string name="panel_config_tile_picker_title">Aggiungi riquadri</string>
+    <string name="panel_config_tile_picker_explanation">Tocca un riquadro per aggiungerlo. I riquadri attivi possono poi essere riordinati nell’elenco principale.</string>
+    <string name="panel_config_tile_picker_panosp">Riquadri PanOSP disponibili</string>
+    <string name="panel_config_layout">Disposizione</string>
+    <string name="panel_config_selected_tiles">Riquadri visibili</string>
+<string name="panel_config_columns">Colonne</string>
+    <string name="panel_config_rows">Righe massime</string>
+    <string name="panel_config_tile_size">Dimensione riquadro (dp)</string>
+    <string name="panel_config_corner_radius">Raggio angoli (dp)</string>
+    <string name="panel_config_panel_opacity">Opacità pannello (%)</string>
+    <string name="panel_config_notification_text_size">Testo notifiche (sp)</string>
+    <string name="panel_config_shape">Forma riquadro</string>
+    <string name="panel_config_shape_circle">Cerchio</string>
+    <string name="panel_config_shape_rounded">Quadrato arrotondato</string>
+    <string name="panel_config_shape_square">Quadrato</string>
+
+<string name="panel_config_keep_one_tile">Mantieni almeno un riquadro visibile.</string>
+    <string name="panel_config_all_tiles_selected">Tutti i riquadri PanOSP disponibili sono già visibili.</string>
+    <string name="panel_config_reset">Ripristina disposizione pannello</string>
+    <string name="panel_config_content_description">Configura pannello PanOSP</string>
+    <string name="panel_config_reorder_hint">Tieni premuto ≡ e trascina un riquadro per riordinarlo.</string>
+    <string name="panel_config_drag">Trascina %1$s per riordinare</string>
+
+<string name="panel_config_remove">Rimuovi %1$s</string>
+    <string name="panel_config_add">Aggiungi %1$s</string>
+    <string name="panel_config_notification_background_opacity">Opacità sfondo notifiche (%)</string>
+    <string name="panel_config_panel_corner_radius">Raggio angoli pannello (dp)</string>
+    <string name="panel_config_value">%1$s: %2$d</string>
+    <string name="panel_config_reset_success">Configurazione ripristinata</string>
+</resources>

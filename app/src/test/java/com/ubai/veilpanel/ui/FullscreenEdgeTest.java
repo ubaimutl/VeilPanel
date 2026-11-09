@@ -74,6 +74,59 @@ public class FullscreenEdgeTest {
         Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();
         touch(MotionEvent.ACTION_DOWN,2);touch(MotionEvent.ACTION_MOVE,180);assertTrue(panel.isExpanded());
     }
+    @Test public void statusBarOnlyHiddenDoesNotRequireARevealPull(){
+        Object monitor=ReflectionHelpers.getField(panel,"barMonitor");View sensor=ReflectionHelpers.getField(monitor,"sensor");
+        sensor.dispatchApplyWindowInsets(new WindowInsets.Builder().setVisible(WindowInsets.Type.statusBars(),false).setVisible(WindowInsets.Type.navigationBars(),true).build());
+        touch(MotionEvent.ACTION_DOWN,dp(8));assertTrue(panel.shouldSuppressSystemShade());
+        touch(MotionEvent.ACTION_MOVE,180);assertTrue(panel.isExpanded());
+    }
+    private void noNavigationSourceStatusHidden(){
+        Object monitor=ReflectionHelpers.getField(panel,"barMonitor");View sensor=ReflectionHelpers.getField(monitor,"sensor");
+        sensor.dispatchApplyWindowInsets(new WindowInsets.Builder().setVisible(WindowInsets.Type.statusBars(),false).setVisible(WindowInsets.Type.navigationBars(),false).build());
+    }
+    private void nativeShadeOpen(boolean open){
+        Shadows.shadowOf(service).setSystemActions(open?java.util.List.of(new android.view.accessibility.AccessibilityNodeInfo.AccessibilityAction(AccessibilityService.GLOBAL_ACTION_DISMISS_NOTIFICATION_SHADE,"Dismiss")):java.util.List.of());
+    }
+    private void idle(long ms){Shadows.shadowOf(android.os.Looper.getMainLooper()).idleFor(java.time.Duration.ofMillis(ms));}
+    // Status-only app on a device without a navigation inset: SystemUI opens its shade.
+    @Test public void withoutNavigationSourceVeilReplacesTheNativeShadeOnTheFirstPull(){
+        noNavigationSourceStatusHidden();nativeShadeOpen(false);
+        touch(MotionEvent.ACTION_DOWN,dp(8));touch(MotionEvent.ACTION_MOVE,180);assertFalse(panel.isExpanded());
+        nativeShadeOpen(true);idle(100);
+        assertTrue(panel.isExpanded());
+        assertTrue(Shadows.shadowOf(service).getGlobalActionsPerformed().contains(AccessibilityService.GLOBAL_ACTION_DISMISS_NOTIFICATION_SHADE));
+    }
+    @Test public void nativeShadeAppearingJustAfterReleaseIsStillReplaced(){
+        noNavigationSourceStatusHidden();nativeShadeOpen(false);
+        touch(MotionEvent.ACTION_DOWN,dp(8));touch(MotionEvent.ACTION_MOVE,180);touch(MotionEvent.ACTION_CANCEL,180);
+        idle(200);assertFalse(panel.isExpanded());nativeShadeOpen(true);idle(100);assertTrue(panel.isExpanded());
+    }
+    // Immersive app on a device without a navigation inset: SystemUI only reveals bars.
+    @Test public void withoutNavigationSourceImmersiveAppStillNeedsTwoPulls(){
+        noNavigationSourceStatusHidden();nativeShadeOpen(false);
+        touch(MotionEvent.ACTION_DOWN,dp(8));touch(MotionEvent.ACTION_MOVE,180);touch(MotionEvent.ACTION_UP,180);
+        idle(1000);assertFalse(panel.isExpanded());
+        assertTrue(Shadows.shadowOf(service).getGlobalActionsPerformed().isEmpty());
+        touch(MotionEvent.ACTION_DOWN,dp(8));touch(MotionEvent.ACTION_MOVE,180);assertTrue(panel.isExpanded());
+    }
+    @Test public void nativeShadeWatchEndsSoALaterShadeIsNotHijacked(){
+        noNavigationSourceStatusHidden();nativeShadeOpen(false);
+        touch(MotionEvent.ACTION_DOWN,dp(8));touch(MotionEvent.ACTION_MOVE,180);touch(MotionEvent.ACTION_UP,180);
+        idle(700);nativeShadeOpen(true);idle(1000);
+        assertFalse(panel.isExpanded());assertTrue(Shadows.shadowOf(service).getGlobalActionsPerformed().isEmpty());
+    }
+    @Test public void devicesWithANavigationBarDoNotWatchTheNativeShade(){
+        Object monitor=ReflectionHelpers.getField(panel,"barMonitor");View sensor=ReflectionHelpers.getField(monitor,"sensor");
+        sensor.dispatchApplyWindowInsets(new WindowInsets.Builder().setInsetsIgnoringVisibility(WindowInsets.Type.navigationBars(),android.graphics.Insets.of(0,0,0,24)).setVisible(WindowInsets.Type.statusBars(),false).setVisible(WindowInsets.Type.navigationBars(),false).build());
+        nativeShadeOpen(false);touch(MotionEvent.ACTION_DOWN,dp(8));touch(MotionEvent.ACTION_MOVE,180);
+        nativeShadeOpen(true);idle(200);assertFalse(panel.isExpanded());
+    }
+    @Test public void existingNavigationBarHiddenWithStatusBarStillRequiresTwoPulls(){
+        Object monitor=ReflectionHelpers.getField(panel,"barMonitor");View sensor=ReflectionHelpers.getField(monitor,"sensor");
+        sensor.dispatchApplyWindowInsets(new WindowInsets.Builder().setInsetsIgnoringVisibility(WindowInsets.Type.navigationBars(),android.graphics.Insets.of(0,0,0,24)).setVisible(WindowInsets.Type.statusBars(),false).setVisible(WindowInsets.Type.navigationBars(),false).build());
+        touch(MotionEvent.ACTION_DOWN,dp(8));touch(MotionEvent.ACTION_MOVE,180);assertFalse(panel.isExpanded());touch(MotionEvent.ACTION_CANCEL,180);
+        touch(MotionEvent.ACTION_DOWN,dp(8));touch(MotionEvent.ACTION_MOVE,180);assertTrue(panel.isExpanded());
+    }
     @Test public void visibilitySensorIsBelowSystemUiAndCannotTakeTouchesOrFocus(){
         Object monitor=ReflectionHelpers.getField(panel,"barMonitor");View sensor=ReflectionHelpers.getField(monitor,"sensor");assertNotNull(sensor);
         WindowManager.LayoutParams p=(WindowManager.LayoutParams)sensor.getLayoutParams();

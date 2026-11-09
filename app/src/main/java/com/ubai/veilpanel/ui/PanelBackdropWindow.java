@@ -19,6 +19,8 @@ public final class PanelBackdropWindow {
  private boolean registered,blurRegistered;
  private int generation;
  private ImageView cover;
+ private View scrim;
+ private int scrimAlpha=51;
  private StatusBarContentUnderlay statusContent;
  private static final java.util.concurrent.ExecutorService IMAGES=java.util.concurrent.Executors.newSingleThreadExecutor();
  private final Consumer<Boolean> blurChanged=enabled->refresh();
@@ -33,7 +35,7 @@ public final class PanelBackdropWindow {
   if(!Settings.canDrawOverlays(context))return false;
   view=new FrameLayout(context);view.setBackgroundColor(PowerSaverBackdrop.available(context)?PanOSPTheme.notificationBackground(context):Color.TRANSPARENT);
   image=new ImageView(context);image.setScaleType(ImageView.ScaleType.CENTER_CROP);image.setVisibility(View.GONE);view.addView(image,new FrameLayout.LayoutParams(-1,-1));
-  View scrim=new View(context);scrim.setBackgroundColor(0x33000000);view.addView(scrim,new FrameLayout.LayoutParams(-1,-1));
+  scrim=new View(context);scrim.setBackgroundColor(0x33000000);view.addView(scrim,new FrameLayout.LayoutParams(-1,-1));
   params=new WindowManager.LayoutParams(-1,-1,WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
    WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE|WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL|WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN|WindowManager.LayoutParams.FLAG_SHOW_WALLPAPER|WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS|WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,android.graphics.PixelFormat.TRANSLUCENT);
   params.gravity=Gravity.TOP|Gravity.LEFT;params.setFitInsetsTypes(0);params.layoutInDisplayCutoutMode=WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS;params.setTitle("VeilPanelBackdrop");
@@ -54,7 +56,7 @@ public final class PanelBackdropWindow {
   params.setBlurBehindRadius(blur?Math.round(Math.max(0,Math.min(64,context.getSharedPreferences("veil_panel",0).getInt("blur",24)))*context.getResources().getDisplayMetrics().density):0);
   params.dimAmount=saved?0:blur?.20f:.38f;manager.updateViewLayout(view,params);
   int request=++generation;image.setVisibility(View.GONE);
-  if(saved)IMAGES.execute(()->{android.graphics.Bitmap bitmap=PowerSaverBackdrop.loadAtBlur(context,context.getSharedPreferences("veil_panel",0).getInt("blur",24));context.getMainExecutor().execute(()->{if(view!=null&&request==generation&&bitmap!=null){image.setImageBitmap(bitmap);image.setVisibility(View.VISIBLE);}});});
+  if(saved)IMAGES.execute(()->{android.graphics.Bitmap bitmap=PowerSaverBackdrop.loadAtBlur(context,context.getSharedPreferences("veil_panel",0).getInt("blur",24));context.getMainExecutor().execute(()->{if(view!=null&&request==generation&&bitmap!=null){scrimAlpha=GlassContrast.wallpaperScrim(context,bitmap);scrim.setBackgroundColor(scrimAlpha<<24);image.setImageBitmap(bitmap);image.setVisibility(View.VISIBLE);}});});
  }
  /** Opaque saved wallpaper in the trusted content layer also covers stock
   * heads-up windows, which otherwise sit above the live-wallpaper host. */
@@ -63,7 +65,7 @@ public final class PanelBackdropWindow {
   cover=new ImageView(root.getContext());cover.setScaleType(ImageView.ScaleType.CENTER_CROP);cover.setBackgroundColor(PanOSPTheme.notificationBackground(context));cover.setVisibility(View.VISIBLE);
   FrameLayout.LayoutParams layout=new FrameLayout.LayoutParams(-1,-1);root.addView(cover,layout);
   cover.addOnLayoutChangeListener((v,l,t,r,b,ol,ot,or,ob)->v.setClipBounds(new android.graphics.Rect(0,PanelSystemBars.visible(context)?statusHeight:0,r-l,b-t)));
-  IMAGES.execute(()->{android.graphics.Bitmap bitmap=PowerSaverBackdrop.loadAtBlur(context,context.getSharedPreferences("veil_panel",0).getInt("blur",24));context.getMainExecutor().execute(()->{if(view!=null&&cover!=null&&bitmap!=null){cover.setImageBitmap(bitmap);cover.setColorFilter(0x33000000,android.graphics.PorterDuff.Mode.SRC_ATOP);cover.setVisibility(View.VISIBLE);}});});
+  IMAGES.execute(()->{android.graphics.Bitmap bitmap=PowerSaverBackdrop.loadAtBlur(context,context.getSharedPreferences("veil_panel",0).getInt("blur",24));context.getMainExecutor().execute(()->{if(view!=null&&cover!=null&&bitmap!=null){cover.setImageBitmap(bitmap);cover.setColorFilter(GlassContrast.wallpaperScrim(context,bitmap)<<24,android.graphics.PorterDuff.Mode.SRC_ATOP);cover.setVisibility(View.VISIBLE);}});});
  }
  public void mirrorStatusContent(PanelContentViewport content,int statusHeight){
   if(view==null||!PanelSystemBars.visible(context))return;
@@ -76,7 +78,7 @@ public final class PanelBackdropWindow {
   if(cover!=null){if(cover.getParent() instanceof android.view.ViewGroup)((android.view.ViewGroup)cover.getParent()).removeView(cover);cover=null;}
   if(registered){context.unregisterReceiver(powerChanged);registered=false;}
   if(blurRegistered){manager.removeCrossWindowBlurEnabledListener(blurChanged);blurRegistered=false;}
-  if(view!=null){manager.removeViewImmediate(view);view=null;image=null;params=null;}
+  if(view!=null){manager.removeViewImmediate(view);view=null;image=null;scrim=null;params=null;}
  }
  /** Paint the same saved wallpaper crop into the stationary recovery guard.
   * No screenshot, extra decode, or per-frame bitmap allocation is needed. */
@@ -89,7 +91,7 @@ public final class PanelBackdropWindow {
   float left=(width-bitmap.getWidth()*scale)/2,top=(height-bitmap.getHeight()*scale)/2;
   android.graphics.Paint paint=new android.graphics.Paint(android.graphics.Paint.FILTER_BITMAP_FLAG);
   canvas.drawBitmap(bitmap,null,new android.graphics.RectF(left,top,left+bitmap.getWidth()*scale,top+bitmap.getHeight()*scale),paint);
-  canvas.drawColor(0x33000000);
+  canvas.drawColor(scrimAlpha<<24);
  }
  public void setCurtainOffset(float offset){if(statusContent!=null)statusContent.setCurtainOffset(offset);if(view!=null)view.setTranslationY(offset);}
 }

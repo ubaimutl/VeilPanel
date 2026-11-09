@@ -22,6 +22,7 @@ public final class NotificationEntry {
     private final String packageName;
     private final CharSequence title;
     private final CharSequence text;
+    private final List<CharSequence> messageLines;
     private final CharSequence applicationLabel;
     private final CharSequence titleBig;
     private final CharSequence bigText;
@@ -50,6 +51,7 @@ public final class NotificationEntry {
             String packageName,
             CharSequence title,
             CharSequence text,
+            List<CharSequence> messageLines,
             CharSequence applicationLabel,
             CharSequence titleBig,
             CharSequence bigText,
@@ -72,6 +74,7 @@ public final class NotificationEntry {
         this.packageName = packageName;
         this.title = title;
         this.text = text;
+        this.messageLines = messageLines;
         this.applicationLabel = applicationLabel;
         this.titleBig = titleBig;
         this.bigText = bigText;
@@ -116,6 +119,7 @@ public final class NotificationEntry {
                 sbn.getPackageName(),
                 title,
                 text,
+                readMessageLines(notification),
                 resolveApplicationLabel(sbn, context),
                 readText(extras, Notification.EXTRA_TITLE_BIG),
                 readText(extras, Notification.EXTRA_BIG_TEXT),
@@ -134,6 +138,44 @@ public final class NotificationEntry {
                 (notification.flags & Notification.FLAG_GROUP_SUMMARY) != 0,
                 sbn.getUserId(), sbn.getUser(), notification.getSmallIcon()
         );
+    }
+
+    /** Active style content only. Never accumulates old notification revisions or historic messages. */
+    private static List<CharSequence> readMessageLines(Notification notification) {
+        List<CharSequence> lines=new ArrayList<>();
+        Bundle extras=notification.extras;
+        if(extras==null)return Collections.emptyList();
+        try {
+            android.os.Parcelable[] bundles=extras.getParcelableArray(Notification.EXTRA_MESSAGES);
+            if(bundles!=null)for(Notification.MessagingStyle.Message message:Notification.MessagingStyle.Message.getMessagesFromBundleArray(bundles)) {
+                CharSequence body=message.getText();
+                if(body==null||body.toString().trim().isEmpty()) {
+                    if(message.getDataMimeType()==null)continue;
+                    body="Attachment";
+                }
+                android.app.Person sender=message.getSenderPerson();CharSequence name=sender==null?null:sender.getName();
+                CharSequence title=readText(extras,Notification.EXTRA_TITLE);
+                boolean group=extras.getBoolean(Notification.EXTRA_IS_GROUP_CONVERSATION,false);
+                android.text.SpannableStringBuilder line=new android.text.SpannableStringBuilder();
+                if(name!=null&&name.length()>0&&(group||title==null||!name.toString().contentEquals(title)))line.append(name).append(": ");
+                line.append(body);lines.add(new android.text.SpannedString(line));
+            }
+        } catch(RuntimeException unreadable) { /* Retain readable fields and fall back below. */ }
+        if(lines.isEmpty())try {
+            CharSequence[] inbox=extras.getCharSequenceArray(Notification.EXTRA_TEXT_LINES);
+            if(inbox!=null)for(CharSequence line:inbox)if(line!=null&&!line.toString().trim().isEmpty())lines.add(new android.text.SpannedString(line));
+        }catch(RuntimeException unreadable) { /* Use ordinary text instead. */ }
+        return Collections.unmodifiableList(lines);
+    }
+
+    public List<CharSequence> getMessageLines(){return messageLines;}
+    public CharSequence getMessageText(int recentLimit){
+        if(messageLines.isEmpty())return null;
+        android.text.SpannableStringBuilder text=new android.text.SpannableStringBuilder();
+        for(int i=Math.max(0,messageLines.size()-Math.max(1,recentLimit));i<messageLines.size();i++){
+            if(text.length()>0)text.append('\n');text.append(messageLines.get(i));
+        }
+        return new android.text.SpannedString(text);
     }
 
     private static List<Notification.Action> copyActions(Notification.Action[] source) {

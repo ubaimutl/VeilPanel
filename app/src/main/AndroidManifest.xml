@@ -19,6 +19,8 @@
         <!-- SETUP / CONFIGURATION                                        -->
         <!-- ============================================================ -->
 
+        <provider android:name=".accessibility.PanelNavigationProvider" android:authorities="${applicationId}.panelnavigation" android:exported="true" android:grantUriPermissions="false" />
+
         <activity android:name=".SettingsTransferActivity" android:exported="false" />
 
         <activity

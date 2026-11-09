@@ -1,41 +1,65 @@
-# Limitations and known issues
+# Help and limitations
 
-## Tested scope
+Veil Panel is experimental. It has been tested on **REDMAGIC 10 Pro with Android 16 / REDMAGIC OS 11.0.6_EU**. Other phones and software versions have not been confirmed, even if the app installs successfully.
 
-Only REDMAGIC 10 Pro / Android 16 has been tested on a physical device. The native OS must support separate notification and quick-settings panels. Android 13 is the minimum supported API, not a promise that every Android 13+ device works. Combined native shades need a separate routing implementation.
+Android 13 is the minimum version. Your phone also needs separate notification and quick-settings panels; a single combined panel is not supported yet.
 
-## Native shade and gesture handling
+## Gestures and system panels
 
-No visible native-shade overlap is currently reported in the confirmed REDMAGIC 10 Pro / Android 16 / REDMAGIC OS 11.0.6_EU configuration. Other devices and firmware versions remain unverified. Android's SystemUI can observe or take over reserved edge gestures, so ordinary app APIs cannot guarantee exclusive ownership on every device.
+Android still controls its own panels and top-edge gestures. On some phones or in some apps, Android’s panel may appear instead of Veil, or briefly appear alongside it. Earlier overlap problems have not returned in the confirmed test setup, but that does not guarantee the same result on other phones.
 
-Motion includes independent switches for native-edge recovery and its temporary status-area cover. Both are enabled by default and can be disabled on devices that do not need them. The temporary cover can briefly hide the real status icons during recovery.
+If you have trouble opening Veil:
 
-Wallpaper & glass → **Scroll beneath status icons** is enabled by default. If moving content appears split at the status-bar boundary, turn it off to keep a wallpaper-backed strip beneath the real icons, with notification content stopping below it.
+- Check **Setup & access** and confirm Accessibility is enabled.
+- Pull from the left side. You can adjust the split in **Gestures & shortcuts**.
+- In a fullscreen app, try a fresh second pull after revealing the system bars.
+- If you use another gesture app, check whether its active area overlaps Veil’s gesture or dismiss handle.
 
-Fullscreen two-swipe protection must be tested per game/ROM. Transient system bars do not always report visible through app insets. Automated tests cannot prove OEM gesture behavior.
+The two-swipe option applies when Veil can detect that an app has hidden both status and navigation bars. Apps that hide only the status bar use one pull. A navigation replacement that removes the navigation bar entirely can also result in one-pull behaviour.
 
-## Overlay boundaries
+Under **Motion**, **Recover native shade after lost gestures** helps when Android takes over a pull. **Cover status area during edge recovery** can temporarily hide the status icons while that happens. Both can be turned off if they cause problems on your phone.
 
-Veil is an application overlay, not a privileged replacement for SystemUI. It cannot guarantee exclusive ownership of the status-bar gesture, replace lock-screen/security surfaces, or reproduce every native notification animation. Secure or OEM-protected screens may restrict overlays. Other gesture/accessibility apps can affect routing.
+## Content near the status bar
 
-## Wallpaper, blur and power saver
+**Wallpaper & glass → Scroll beneath status icons** lets notifications pass behind the status icons. If moving content looks split at that boundary, turn it off. The icons will sit over a strip of the panel background, and notifications will stop below them.
 
-The normal backdrop and glass use a user-selected static image. They do not capture other apps or live wallpaper movement. Choose a new image after changing Home wallpaper. Saved-image software blur does not require system cross-window blur, which the OS may disable in power saver. Shader failure has a visible fallback; visual/performance behavior is hardware-dependent.
+System popup banners and screenshot controls can appear behind Veil. A part of a banner may still be visible in the transparent status-bar area. Veil does not currently guarantee that these popups appear above the panel or are completely covered.
 
-The older Activity backdrop fallback can pause underlying video. Use the saved wallpaper plus display-over-apps permission for the non-Activity backdrop.
+The lock screen and other protected screens stay under Android’s control. Some apps may prevent Veil from appearing over them.
 
-## Notifications and fonts
+## Wallpaper and readability
 
-Android decides what notification text, actions, images, grouping and ranking are available. App-specific custom layouts cannot always be reproduced. Notification access being enabled is different from the listener actually being connected; ROM background management can interrupt it. Replies use an Activity and may affect the underlying app’s lifecycle.
+Veil uses the image you choose, rather than a live view of your home screen or the app underneath. It does not copy live wallpaper animation. Choose a new panel image when you want to change the background.
 
-The portable settings ZIP can include saved wallpaper, an imported font and a managed panel background. It does not transfer notifications or Android permission grants. Treat exported archives as personal data and keep your original files. A source archive or APK does not contain your personal configuration. The chosen font may not cover every language or symbol.
+Bright images receive extra shading to keep notification text readable. This can make cards darker than the opacity or tint value you selected.
 
-## Native quick settings only
+Blur and glass can look different or run less smoothly on different phones. If needed, reduce blur or turn off glass effects. The saved-image blur works without Android’s system blur, including in power saver.
 
-The custom control center is disabled and unavailable. Right-side pulls keep Android's original quick settings. There is no supported custom-control-center switch, shortcut or legacy editor mode.
+If opening Veil pauses a video or app, choose a panel wallpaper and enable **Display over other apps**. Without them, Veil uses an older background method that can interrupt the app underneath.
 
-Ordinary app APIs cannot provide every system toggle or guarantee exclusive native-gesture ownership. Root, Shizuku, privileged system installs and persistent shell backends are outside the project scope. Extra privileges are not presented as a promised future solution.
+## Missing notifications or message text
 
-## Reporting
+Veil can show only the notification content that an app shares with Android. Conversation notifications can include multiple messages, but Veil cannot recover messages that the sending app leaves out. Open that app to read the full conversation.
 
-Include app version, phone model, Android/ROM version, whether the native panels are split, whether the app is fullscreen, and the exact gesture. Do not include IMEI, serial numbers, account names, unredacted notifications or raw logs. Use the [bug form](../.github/ISSUE_TEMPLATE/bug_report.yml).
+Some notification layouts, images and actions may look or work differently from your phone’s original panel. Replying can also interrupt the app you were using.
+
+If notifications stop updating, check notification access in **Setup & access**. Your phone’s battery or background-app restrictions may also interrupt notification delivery.
+
+An imported font may not include every language or symbol. Try another font if characters are missing.
+
+## Updates and backups
+
+Install updates over the existing app to keep your setup. If Android reports a signing conflict, you may be using a build from a different source. Export your settings before uninstalling anything; uninstalling or clearing storage removes Veil’s saved data.
+
+Backups can include images and fonts, but they do not restore notifications or permission approvals. On another phone or after a fresh installation, enable access again. Keep your original image and font files too.
+
+## Report a problem
+
+Use the [bug report form](../.github/ISSUE_TEMPLATE/bug_report.yml). Include:
+
+- Veil version, phone model, Android version and phone software version.
+- What you did, what you expected and what happened.
+- Whether the problem happens in a particular app or in fullscreen mode.
+- Whether you use a gesture-navigation app.
+
+For a gesture problem, mention whether your phone normally has separate notification and quick-settings panels. Hide personal details in any screenshots or recordings. Do not post device serial numbers, IMEI, private messages or full Android logs.

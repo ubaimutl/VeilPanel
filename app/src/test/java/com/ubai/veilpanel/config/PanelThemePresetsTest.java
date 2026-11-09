@@ -15,6 +15,10 @@ public class PanelThemePresetsTest {
    assertTrue(PanelThemePresets.canUndo(context));assertTrue(PanelThemePresets.undo(context));assertEquals(before,prefs.getAll());assertFalse(PanelThemePresets.canUndo(context));
   }
  }
+ @Test public void demoAppliesGlassAppearanceAndPreservesInteractionSettings(){
+  var values=PanelThemePresets.values("demo");assertEquals(86,values.get("clock_size"));assertEquals("liquid",values.get("header_clock_style"));assertEquals(900,values.get("header_clock_weight"));assertEquals(-24,values.get("header_clock_top_space"));assertEquals(7,values.get("card_gap"));assertEquals(29,values.get("control_surface_size"));assertEquals(67,values.get("description_brightness"));assertEquals(true,values.get("kyant_liquid_glass"));
+  var prefs=context.getSharedPreferences("veil_panel",0);prefs.edit().putInt("split",68).putBoolean("scroll_under_status_bar",false).putBoolean("native_edge_recovery",false).commit();var before=prefs.getAll();PanelThemePresets.apply(context,"demo");assertEquals(68,prefs.getInt("split",0));assertFalse(prefs.getBoolean("scroll_under_status_bar",true));assertFalse(prefs.getBoolean("native_edge_recovery",true));assertTrue(PanelThemePresets.undo(context));assertEquals(before,prefs.getAll());
+ }
  @Test public void allPresetSizesAreWithinSupportedRanges(){
   for(String id:PanelThemePresets.IDS)for(PanelAppearance.Option option:PanelAppearance.OPTIONS){
    int value=(Integer)PanelThemePresets.values(id).get(option.key);assertTrue(id+" / "+option.key,value>=option.min&&value<=option.max);

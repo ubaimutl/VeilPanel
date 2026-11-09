@@ -10,9 +10,9 @@ import org.json.JSONObject;
  * wallpaper files, recovery behavior, or saved font files are changed. */
 public final class PanelThemePresets {
     private PanelThemePresets(){}
-    public static final String[] IDS={"minimal","frosted","glass","readable"};
-    public static final String[] NAMES={"Minimal","Frosted","Glass","Readable"};
-    public static final String[] DESCRIPTIONS={"Compact, clean cards","Soft frost and rounded cards","Translucent, iOS-inspired glass","Larger text and stronger contrast"};
+    public static final String[] IDS={"minimal","frosted","glass","readable","demo"};
+    public static final String[] NAMES={"Minimal","Frosted","Glass","Readable","Demo"};
+    public static final String[] DESCRIPTIONS={"Compact, clean cards","Soft frost and rounded cards","Translucent, iOS-inspired glass","Larger text and stronger contrast","Compact glass cards with a bold clock"};
     private static Map<String,Object> base(){
         Map<String,Object> values=new LinkedHashMap<>();
         for(PanelAppearance.Option option:PanelAppearance.OPTIONS)values.put(option.key,option.initial);
@@ -46,6 +46,60 @@ public final class PanelThemePresets {
             case "readable":
                 v.put("glass_opacity",98);v.put("headline_size",20);v.put("body_size",18);v.put("time_size",14);v.put("icon_size",48);
                 v.put("card_height",104);v.put("card_padding",18);v.put("card_gap",12);v.put("clock_size",48);v.put("description_brightness",85);break;
+            case "demo":
+                v.put("control_borders",false);v.put("control_surface_size",29);v.put("control_icon_size",18);
+                v.put("blur",0);
+                v.put("body_size",15);
+                v.put("card_gap",7);
+                v.put("card_height",75);
+                v.put("card_padding",10);
+                v.put("card_radius",13);
+                v.put("card_width",100);
+                v.put("clock_glass_frost",80);
+                v.put("clock_glass_highlight",60);
+                v.put("clock_glass_refraction",9);
+                v.put("clock_size",86);
+                v.put("description_brightness",67);
+                v.put("experimental_glass",false);
+                v.put("font_family","custom");
+                v.put("font_weight",600);
+                v.put("glass_opacity",67);
+                v.put("header_clock_alignment","start");
+                v.put("header_clock_bottom_space",4);
+                v.put("header_clock_style","liquid");
+                v.put("header_clock_top_space",-24);
+                v.put("header_clock_visible",true);
+                v.put("header_clock_weight",900);
+                v.put("header_close_visible",false);
+                v.put("header_date_alignment","start");
+                v.put("header_date_size",22);
+                v.put("header_date_visible",true);
+                v.put("header_date_weight",900);
+                v.put("header_settings_visible",true);
+                v.put("headline_size",15);
+                v.put("icon_size",39);
+                v.put("kyant_liquid_glass",true);
+                v.put("liquid_blur",8);
+                v.put("liquid_edge",20);
+                v.put("liquid_highlight",44);
+                v.put("liquid_refraction",32);
+                v.put("liquid_tint",26);
+                v.put("preview_lines",3);
+                v.put("reference_glass",false);
+                v.put("side_margin",25);
+                v.put("time_size",15);
+                v.put("dynamic",true);
+                v.put("expanded_preview_lines",10);
+                v.put("header_battery_visible",true);
+                v.put("header_clock_leading_zero",false);
+                v.put("header_clock_spacing",25);
+                v.put("clock_glass_bevel",3);
+                v.put("header_gap",24);
+                v.put("icon_corner",10);
+                v.put("icon_gap",12);
+                v.put("liquid_depth",true);
+                v.put("liquid_dispersion",true);
+                break;
             default:throw new IllegalArgumentException("Unknown theme");
         }
         return v;
@@ -73,10 +127,12 @@ public final class PanelThemePresets {
         String saved=history(context).getString("previous",null);if(saved==null)return false;
         try{
             JSONObject previous=new JSONObject(saved);Map<String,Object> allowed=base();
+            java.util.Set<String> required=new java.util.HashSet<>(allowed.keySet());
+            allowed.put("control_borders",false);allowed.put("control_surface_size",28);allowed.put("control_icon_size",18);
             // Validate completely before writing; restore absent keys as absent.
             Map<String,Object> restored=new LinkedHashMap<>();
             for(String key:allowed.keySet()){
-                if(!previous.has(key))return false;
+                if(!previous.has(key)){if(required.contains(key))return false;continue;}
                 Object value=previous.get(key);
                 if(value!=JSONObject.NULL&&!allowed.get(key).getClass().isInstance(value))return false;
                 restored.put(key,value);

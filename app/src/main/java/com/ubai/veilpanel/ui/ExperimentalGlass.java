@@ -9,8 +9,8 @@ public final class ExperimentalGlass {
  public static boolean enabled(Context context){return context.getSharedPreferences("veil_panel",0).getBoolean("experimental_glass",false);}
  private static int alpha(int color,int value){return (color&0xffffff)|(Math.max(0,Math.min(255,value))<<24);}
  public static GradientDrawable surface(Context context,float radius,int opacity,boolean control){
-  int base=PanOSPTheme.notificationBackground(context);int a=Math.round(opacity*2.55f);
-  GradientDrawable material=new GradientDrawable(GradientDrawable.Orientation.TL_BR,new int[]{alpha(base,Math.min(245,a+25)),alpha(base,Math.max(100,a-12)),alpha(base,a+10)});
+  int base=PanOSPTheme.notificationBackground(context);int a=Math.round(GlassContrast.safeOpacity(context,opacity)*2.55f);
+  GradientDrawable material=new GradientDrawable(GradientDrawable.Orientation.TL_BR,new int[]{alpha(base,Math.min(245,a+25)),alpha(base,a),alpha(base,a+10)});
   material.setCornerRadius(radius);material.setStroke(Math.max(1,Math.round(context.getResources().getDisplayMetrics().density)),control?0x66FFFFFF:0x32FFFFFF);return material;
  }
  public static int iconSize(Context context){return Math.max(16,Math.min(26,context.getSharedPreferences("veil_panel",0).getInt("control_icon_size",18)));}

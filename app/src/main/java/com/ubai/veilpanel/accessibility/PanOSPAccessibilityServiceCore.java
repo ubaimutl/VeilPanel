@@ -13,11 +13,17 @@ public class PanOSPAccessibilityServiceCore extends AccessibilityService {
     private ShadeWindowController panel;
     private SystemShadeController system;
     private boolean registered;
-    private static java.lang.ref.WeakReference<PanOSPAccessibilityServiceCore> active=new java.lang.ref.WeakReference<>(null);
+    private static volatile java.lang.ref.WeakReference<PanOSPAccessibilityServiceCore> active=new java.lang.ref.WeakReference<>(null);
     public static boolean requestPanelOpen() {
         PanOSPAccessibilityServiceCore service=active.get();
         if(service==null||service.panel==null)return false;
         service.wakeHandler.postDelayed(()->{service.updateScreen();if(active.get()==service&&service.panel!=null)service.panel.openFromShortcut();},80);
+        return true;
+    }
+    public static boolean requestPanelDismiss() {
+        PanOSPAccessibilityServiceCore service=active.get();
+        if(service==null||service.panel==null||!service.panel.isExpanded())return false;
+        service.wakeHandler.post(()->{if(active.get()==service&&service.panel!=null)service.panel.collapse("navigation dismissal");});
         return true;
     }
     private final android.os.Handler wakeHandler=new android.os.Handler(android.os.Looper.getMainLooper());
@@ -70,6 +76,7 @@ public class PanOSPAccessibilityServiceCore extends AccessibilityService {
                 && !system.isSystemUiEvent(event) && panel.isExpanded()) { panel.collapse(); return; }
         if (panel.shouldSuppressSystemShade() && system.isSystemUiEvent(event)
                 && system.shouldDismissSystemShade(event)) system.dismissSystemShade();
+        else if (system.isSystemUiEvent(event)) panel.checkObservedNativeShade();
     }
     @Override public void onConfigurationChanged(android.content.res.Configuration configuration) {
         super.onConfigurationChanged(configuration);

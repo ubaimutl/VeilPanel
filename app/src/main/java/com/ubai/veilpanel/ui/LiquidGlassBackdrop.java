@@ -17,6 +17,8 @@ final class LiquidGlassBackdrop {
     private final ArrayList<Watch> cards=new ArrayList<>();
     private final int[] location=new int[2],origin=new int[2];
     private Bitmap bitmap;
+    private float safetyTint;
+    float safetyTint(){return safetyTint;}
     private int generation;
     private boolean listening;
     private final ViewTreeObserver.OnPreDrawListener preDraw=this::beforeDraw;
@@ -39,7 +41,8 @@ final class LiquidGlassBackdrop {
             Bitmap loaded=null;
             try{loaded=PowerSaverBackdrop.loadAtBlur(owner.getContext(),blur);}catch(RuntimeException|OutOfMemoryError unavailable){}
             final Bitmap ready=loaded;
-            owner.post(()->{if(request==generation&&listening){bitmap=ready;for(Watch card:cards){View view=card.view.get();if(view!=null)view.invalidate();}}});
+            final float contrastTint=ready==null?0:GlassContrast.cardTint(owner.getContext(),GlassContrast.brightest(ready));
+            owner.post(()->{if(request==generation&&listening){bitmap=ready;safetyTint=contrastTint;for(Watch card:cards){View view=card.view.get();if(view!=null)view.invalidate();}}});
         });
     }
     private boolean beforeDraw(){

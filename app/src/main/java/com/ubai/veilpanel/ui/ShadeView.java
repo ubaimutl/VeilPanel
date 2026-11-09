@@ -531,7 +531,7 @@ public final class ShadeView extends LinearLayout {
         if (notifications.isEmpty()) {
             TextView empty = new TextView(getContext());
             empty.setText(R.string.notifications_empty);
-            empty.setTextColor(PanOSPTheme.secondaryText(getContext()));
+            empty.setTextColor(PanOSPTheme.primaryText(getContext()));
             empty.setTextSize(15);
             empty.setPadding(
                     dp(8),
@@ -550,14 +550,14 @@ public final class ShadeView extends LinearLayout {
         renderSection(alerting,"",activeGroups);
         if(!silent.isEmpty()) {
             LinearLayout toggle=new LinearLayout(getContext());toggle.setTransitionName("silent-toggle");toggle.setGravity(Gravity.CENTER_VERTICAL);toggle.setMinimumHeight(dp(48));
-            TextView quietLabel=new TextView(getContext());quietLabel.setText("Silent · "+silent.size());quietLabel.setTextSize(appearance("body_size"));quietLabel.setTextColor(PanOSPTheme.secondaryText(getContext()));toggle.addView(quietLabel,new LinearLayout.LayoutParams(0,-2,1));
+            TextView quietLabel=new TextView(getContext());quietLabel.setText("Silent · "+silent.size());quietLabel.setTextSize(appearance("body_size"));quietLabel.setTextColor(PanOSPTheme.primaryText(getContext()));toggle.addView(quietLabel,new LinearLayout.LayoutParams(0,-2,1));
             ImageButton quietIcon=iconButton(silentExpanded?R.drawable.ic_panel_up:R.drawable.ic_panel_down,"Toggle silent notifications",()->{animateNotificationChange();silentExpanded=!silentExpanded;renderNotifications();});toggle.addView(quietIcon,new LinearLayout.LayoutParams(dp(44),dp(44)));
             toggle.setContentDescription("Silent notifications, "+silent.size()+", "+(silentExpanded?"expanded":"collapsed"));toggle.setOnClickListener(v->{animateNotificationChange();silentExpanded=!silentExpanded;renderNotifications();});
             LinearLayout.LayoutParams quietParams=new LinearLayout.LayoutParams(cardWidth(),-2);quietParams.gravity=Gravity.CENTER_HORIZONTAL;notificationsContainer.addView(toggle,quietParams);
             if(silentExpanded)renderSection(silent,"silent:",activeGroups);
         }
         expandedAppGroups.retainAll(activeGroups);
-        Button clear=new Button(getContext());clear.setText(R.string.veil_clear_all);clear.setTextColor(PanOSPTheme.secondaryText(getContext()));clear.setBackgroundColor(Color.TRANSPARENT);clear.setGravity(Gravity.END|Gravity.CENTER_VERTICAL);
+        Button clear=new Button(getContext());clear.setText(R.string.veil_clear_all);clear.setTextColor(PanOSPTheme.primaryText(getContext()));clear.setBackgroundColor(Color.TRANSPARENT);clear.setGravity(Gravity.END|Gravity.CENTER_VERTICAL);
         clear.setOnClickListener(v->{for(NotificationEntry entry:notificationRepository.snapshot()) if(entry.isClearable())notificationRepository.requestDismiss(entry.getKey());});
         LinearLayout.LayoutParams clearPlacement=new LinearLayout.LayoutParams(-2,dp(48));clearPlacement.gravity=Gravity.END;
         clear.setMinWidth(0);clear.setMinimumWidth(0);clear.setPadding(dp(8),0,dp(8),0);clear.setContentDescription("Clear all dismissible notifications");
@@ -591,7 +591,8 @@ public final class ShadeView extends LinearLayout {
     private void addCollapsedStack(String key, List<NotificationEntry> group) {
         FrameLayout stack = new FrameLayout(getContext());stack.setTransitionName("stack:"+key);
         stack.setContentDescription(group.get(0).getApplicationLabel()+", "+group.size()+" notifications. Expand group");
-        for (int layer=2;layer>=1;layer--) {
+        final int backLayers=Math.min(2,group.size()-1);
+        for (int layer=backLayers;layer>=1;layer--) {
             View back = new View(getContext());
             android.graphics.drawable.GradientDrawable bg=new android.graphics.drawable.GradientDrawable();
             bg.setColor(layer==2 ? Color.rgb(42,42,42) : Color.rgb(49,49,49)); bg.setCornerRadius(dp(appearance("card_radius"))); back.setBackground(bg);
@@ -609,10 +610,10 @@ public final class ShadeView extends LinearLayout {
         ((NotificationCard)card).interceptChildSwipes=false;
         card.setOnClickListener(v->toggleGroup(key));
         redirectExpandButtons(card,()->toggleGroup(key));
-        FrameLayout.LayoutParams cp=new FrameLayout.LayoutParams(-1,-2);cp.bottomMargin=dp(12);stack.addView(card,cp);
+        FrameLayout.LayoutParams cp=new FrameLayout.LayoutParams(-1,-2);cp.bottomMargin=dp(backLayers*6);stack.addView(card,cp);
         card.addOnLayoutChangeListener((v,l,t,r,b,ol,ot,or,ob)->{
             int height=b-t;
-            for(int i=0;i<2;i++){View layerView=stack.getChildAt(i);android.view.ViewGroup.LayoutParams size=layerView.getLayoutParams();if(size.height!=height){size.height=height;layerView.setLayoutParams(size);}}
+            for(int i=0;i<backLayers;i++){View layerView=stack.getChildAt(i);android.view.ViewGroup.LayoutParams size=layerView.getLayoutParams();if(size.height!=height){size.height=height;layerView.setLayoutParams(size);}}
         });
         LinearLayout.LayoutParams sp=new LinearLayout.LayoutParams(cardWidth(),-2);sp.gravity=Gravity.CENTER_HORIZONTAL;sp.bottomMargin=dp(appearance("card_gap"));
         notificationsContainer.addView(stack,sp);
@@ -643,7 +644,7 @@ public final class ShadeView extends LinearLayout {
         NotificationCard card=new NotificationCard(getContext());card.setTransitionName("notification:"+entry.getKey());card.setOrientation(HORIZONTAL);card.setGravity(Gravity.TOP);
         int pad=dp(appearance("card_padding"));card.setPadding(pad,pad,pad,pad);card.setMinimumHeight(dp(appearance("card_height")));
         android.graphics.drawable.GradientDrawable bg=new android.graphics.drawable.GradientDrawable();int colour=PanOSPTheme.notificationBackground(getContext());
-        bg.setColor((colour&0xffffff)|(Math.round(getContext().getSharedPreferences("veil_panel",0).getInt("glass_opacity",66)*2.55f)<<24));bg.setCornerRadius(dp(appearance("card_radius")));bg.setStroke(dp(1),0x20FFFFFF);card.setBackground(ExperimentalGlass.enabled(getContext())?ExperimentalGlass.surface(getContext(),dp(appearance("card_radius")),getContext().getSharedPreferences("veil_panel",0).getInt("glass_opacity",66),false):bg);
+        bg.setColor((colour&0xffffff)|(Math.round(GlassContrast.safeOpacity(getContext(),getContext().getSharedPreferences("veil_panel",0).getInt("glass_opacity",66))*2.55f)<<24));bg.setCornerRadius(dp(appearance("card_radius")));bg.setStroke(dp(1),0x20FFFFFF);card.setBackground(ExperimentalGlass.enabled(getContext())?ExperimentalGlass.surface(getContext(),dp(appearance("card_radius")),getContext().getSharedPreferences("veil_panel",0).getInt("glass_opacity",66),false):bg);
         if(getContext().getSharedPreferences("veil_panel",0).getBoolean("reference_glass",false))card.setBackground(new ReferenceGlassDrawable(getContext(),dp(appearance("card_radius")),getContext().getSharedPreferences("veil_panel",0).getInt("glass_opacity",66)));
         if(LiquidGlassOptions.enabled(getContext())){card.setBackground(new LiquidGlassDrawable(getContext(),card,liquidBackdrop,dp(appearance("card_radius"))));liquidBackdrop.watch(card);}
         LinearLayout.LayoutParams cp=new LinearLayout.LayoutParams(cardWidth(),-2);cp.gravity=Gravity.CENTER_HORIZONTAL;cp.bottomMargin=dp(appearance("card_gap"));card.setLayoutParams(cp);
@@ -661,7 +662,7 @@ public final class ShadeView extends LinearLayout {
         LinearLayout messageRow=new LinearLayout(getContext());messageRow.setOrientation(HORIZONTAL);content.addView(messageRow);
         LinearLayout preview=new LinearLayout(getContext());preview.setOrientation(VERTICAL);messageRow.addView(preview,new LinearLayout.LayoutParams(0,-2,1));
         if(openGroup!=null && title!=null && !sameText(title,headline))preview.addView(notificationText(title,appearance("body_size"),1));
-        CharSequence body=expanded?firstNonBlank(entry.getBigText(),entry.getText(),entry.getTickerText()):firstNonBlank(entry.getText(),entry.getBigText(),entry.getTickerText());
+        CharSequence body=expanded?firstNonBlank(entry.getMessageText(Integer.MAX_VALUE),entry.getBigText(),entry.getText(),entry.getTickerText()):firstNonBlank(entry.getMessageText(appearance("preview_lines")),entry.getText(),entry.getBigText(),entry.getTickerText());
         if(body!=null&&!sameText(body,headline))preview.addView(notificationText(body,appearance("body_size"),expanded?appearance("expanded_preview_lines"):appearance("preview_lines")));
         card.setContentDescription(appName+", "+headline);
         if(openGroup!=null||hasExpandedContent(entry)) {
@@ -724,6 +725,7 @@ public final class ShadeView extends LinearLayout {
     }
 
     private boolean hasExpandedContent(NotificationEntry entry) {
+        if(entry.getMessageLines().size()>1)return true;
         if (entry.getCustomContent() != null && entry.getCustomContent().hasBigContentView()) return true;
         CharSequence compactTitle = firstNonBlank(entry.getTitle(), entry.getTitleBig(), entry.getApplicationLabel(), entry.getPackageName());
         CharSequence compactBody = firstNonBlank(entry.getText(), entry.getBigText(), entry.getTickerText());

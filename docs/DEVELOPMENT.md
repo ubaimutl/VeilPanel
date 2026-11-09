@@ -1,5 +1,7 @@
 # Development
 
+This guide is for building or contributing to Veil Panel. To install the app and set it up on your phone, use [Getting started](GETTING_STARTED.md).
+
 Use JDK 21 and Android SDK 36. The wrapper pins Gradle 9.7.1; the Android plugin is 9.4.1. Java source compatibility is 17. Configure your SDK using `ANDROID_HOME` or an ignored `local.properties` file.
 
 ```sh
@@ -38,3 +40,7 @@ Paths above are relative to `app/src/main/java/com/ubai/veilpanel/` unless state
 Keep LICENSE, NOTICE and dependency notices with source releases. Use an increasing Android version code for upgrades. Distribution signing keys remain private.
 
 Review source, permissions and media before distribution. Keep signing credentials, local configuration and personal device data out of Git.
+
+## Gesture-app dismissal
+
+Enabled Accessibility services can call `content://com.ubai.veilpanel.panelnavigation` with `dismissIfOpen`. The result contains only `handled`: true means Veil accepted the close request, so the caller must consume that navigation gesture. The provider checks the calling UID against the user-enabled Accessibility services. It does not expose notifications, settings or an operation to open the panel.

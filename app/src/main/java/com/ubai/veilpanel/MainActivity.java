@@ -5,7 +5,6 @@ import android.accessibilityservice.AccessibilityServiceInfo;
 import android.app.Activity;
 import android.app.NotificationManager;
 import android.app.LocaleManager;
-import android.app.AlertDialog;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
 import android.content.ComponentName;
@@ -44,7 +43,7 @@ import fr.gibapps.ui.background.GibBackgroundDrawable;
  * configuration-only mode. Opening the normal launcher icon still shows the
  * permission/setup section followed by the same panel editor.
  */
-public class MainActivity extends Activity {
+public class MainActivity extends androidx.appcompat.app.AppCompatActivity {
 
     public static final String EXTRA_OPEN_PANEL_CONFIGURATION =
             "com.ubai.veilpanel.OPEN_PANEL_CONFIGURATION";
@@ -66,6 +65,8 @@ public class MainActivity extends Activity {
     private Button bluetoothButton;
 
     private View appearanceRoot;
+    private com.ubai.veilpanel.ui.SettingsNavigator settingsNavigator;
+    private String selectedSettingsPage="home";
     private String pendingBackgroundImageUri;
     private static final java.util.concurrent.ExecutorService IMAGE_WORK =
             java.util.concurrent.Executors.newSingleThreadExecutor();
@@ -75,6 +76,7 @@ public class MainActivity extends Activity {
     @Override
     protected void onSaveInstanceState(Bundle state) {
         state.putString("pending_background", pendingBackgroundImageUri);
+        state.putString("settings_page",selectedSettingsPage);
         super.onSaveInstanceState(state);
     }
 
@@ -113,8 +115,12 @@ public class MainActivity extends Activity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        setTheme(com.ubai.veilpanel.ui.SettingsStyle.isDark(this)?R.style.VeilSettingsDark:R.style.VeilSettingsLight);
         super.onCreate(savedInstanceState);
         getWindow().setNavigationBarContrastEnforced(false);
+        getWindow().setStatusBarColor(com.ubai.veilpanel.ui.SettingsStyle.panelBackground(this));
+        getWindow().setNavigationBarColor(com.ubai.veilpanel.ui.SettingsStyle.panelBackground(this));
+        if(savedInstanceState!=null)selectedSettingsPage=savedInstanceState.getString("settings_page","home");
 
         if (getIntent().getBooleanExtra("com.ubai.veilpanel.INTERNAL_BOOT_REFRESH", false)) {
             finish();
@@ -123,11 +129,9 @@ public class MainActivity extends Activity {
 
         if (savedInstanceState != null) pendingBackgroundImageUri = savedInstanceState.getString("pending_background");
         setContentView(buildContent());
+        getOnBackInvokedDispatcher().registerOnBackInvokedCallback(android.window.OnBackInvokedDispatcher.PRIORITY_DEFAULT,()->{if(settingsNavigator==null||!settingsNavigator.back())finish();});
         if(savedInstanceState==null&&getIntent().getBooleanExtra("open_transfer_settings",false))startActivityForResult(new Intent(this,SettingsTransferActivity.class),REQUEST_TRANSFER_SETTINGS);
-        if(getIntent().getBooleanExtra("open_liquid_settings",false)){
-            View section=getWindow().getDecorView().findViewWithTag("section:liquid");
-            if(section instanceof com.ubai.veilpanel.ui.SettingsSection){((com.ubai.veilpanel.ui.SettingsSection)section).setExpanded(true,true);section.post(()->section.getParent().requestChildFocus(section,section));}
-        }
+        if(savedInstanceState==null&&getIntent().getBooleanExtra("open_liquid_settings",false))settingsNavigator.select("liquid");
     }
 
     @Override
@@ -337,7 +341,7 @@ public class MainActivity extends Activity {
 
         LinearLayout windowRoot = new LinearLayout(this);
         appearanceRoot = windowRoot;
-        windowRoot.setOrientation(LinearLayout.VERTICAL);
+        windowRoot.setOrientation(LinearLayout.VERTICAL);windowRoot.setFocusableInTouchMode(true);
         PanOSPPreferences appearance = new PanOSPPreferences(this);
         windowRoot.setBackground(new GibBackgroundDrawable(
                 appearance.getThemeBackgroundType(),
@@ -350,16 +354,16 @@ public class MainActivity extends Activity {
         statusBarScrim.setBackgroundColor(android.graphics.Color.TRANSPARENT);
 
         View navigationBarScrim = new View(this);
-        navigationBarScrim.setBackgroundColor(0xff101216);
+        navigationBarScrim.setBackgroundColor(com.ubai.veilpanel.ui.SettingsStyle.panelBackground(this));
 
         ScrollView scrollView = new ScrollView(this);
-        scrollView.setFillViewport(true);scrollView.setVerticalScrollBarEnabled(false);scrollView.setHorizontalScrollBarEnabled(false);
+        scrollView.setTag("settings_scroll");scrollView.setFillViewport(true);scrollView.setVerticalScrollBarEnabled(false);scrollView.setHorizontalScrollBarEnabled(false);
         scrollView.setBackgroundColor(android.graphics.Color.TRANSPARENT);
 
         LinearLayout root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
-        final int horizontalPadding = dp(24);
-        final int topPadding = dp(28);
+        final int horizontalPadding = dp(16);
+        final int topPadding = dp(8);
         final int baseBottomPadding = dp(28);
 
         root.setPadding(
@@ -396,8 +400,8 @@ public class MainActivity extends Activity {
 
         windowRoot.setOnApplyWindowInsetsListener((view, insets) -> {
             android.view.WindowInsetsController controller = view.getWindowInsetsController();
-            if (controller != null) controller.setSystemBarsAppearance(0,
-                    android.view.WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS);
+            if (controller != null) controller.setSystemBarsAppearance(com.ubai.veilpanel.ui.SettingsStyle.isDark(this)?0:android.view.WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS|android.view.WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS,
+                    android.view.WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS|android.view.WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS);
             int statusTop =
                     insets.getInsets(
                             WindowInsets.Type.statusBars()
@@ -422,76 +426,95 @@ public class MainActivity extends Activity {
         });
 
 
-        TextView title = new TextView(this);
-        title.setText(R.string.app_name);
-        title.setTextColor(com.ubai.veilpanel.ui.PanOSPTheme.primaryText(this));
-        title.setGravity(Gravity.START);title.setTextSize(30);title.setTypeface(android.graphics.Typeface.create("sans-serif",android.graphics.Typeface.BOLD));root.addView(title);
+        LinearLayout toolbar=new LinearLayout(this);toolbar.setTag("settings_toolbar");toolbar.setBackgroundColor(com.ubai.veilpanel.ui.SettingsStyle.panelBackground(this));toolbar.setOrientation(LinearLayout.VERTICAL);toolbar.setPadding(dp(16),dp(8),dp(16),dp(8));
+        LinearLayout headingRow=new LinearLayout(this);headingRow.setGravity(Gravity.CENTER_VERTICAL);
+        Button back=new Button(this);back.setTag("settings_back");back.setText("←");back.setTextSize(28);back.setAllCaps(false);back.setTextColor(com.ubai.veilpanel.ui.SettingsStyle.primaryText(this));back.setContentDescription("Back to settings");back.setPadding(0,0,0,0);back.setIncludeFontPadding(false);back.setGravity(Gravity.CENTER);back.setStateListAnimator(null);back.setElevation(0);back.setMinWidth(0);back.setMinimumWidth(0);back.setBackground(com.ubai.veilpanel.ui.SettingsStyle.touch(this,com.ubai.veilpanel.ui.PanOSPTheme.blend(com.ubai.veilpanel.ui.SettingsStyle.panelBackground(this),com.ubai.veilpanel.ui.SettingsStyle.primaryText(this),.06f),28));headingRow.addView(back,new LinearLayout.LayoutParams(dp(48),dp(48)));back.setOnClickListener(v->{if(settingsNavigator!=null&&!settingsNavigator.back())finish();});
+        View spacer=new View(this);headingRow.addView(spacer,new LinearLayout.LayoutParams(0,1,1));
+        Button mode=new Button(this);mode.setTag("settings_appearance");mode.setAllCaps(false);mode.setTextSize(16);mode.setTextColor(com.ubai.veilpanel.ui.SettingsStyle.primaryText(this));mode.setPadding(dp(16),dp(8),dp(16),dp(8));mode.setMinHeight(dp(48));mode.setMinimumHeight(dp(48));mode.setMinWidth(0);mode.setMinimumWidth(0);mode.setIncludeFontPadding(false);mode.setSingleLine(true);mode.setGravity(Gravity.CENTER);mode.setStateListAnimator(null);mode.setElevation(0);mode.setText("Appearance");mode.setContentDescription("Settings appearance");mode.setBackground(com.ubai.veilpanel.ui.SettingsStyle.touch(this,Color.TRANSPARENT,24));mode.setOnClickListener(v->showSettingsAppearance());headingRow.addView(mode,new LinearLayout.LayoutParams(-2,-2));toolbar.addView(headingRow);
+        android.widget.EditText search=new android.widget.EditText(this);search.setTag("settings_search");search.setSingleLine(true);search.setTextSize(16);search.setHint("Search settings");search.setContentDescription("Search settings");search.setTextColor(com.ubai.veilpanel.ui.SettingsStyle.primaryText(this));search.setHintTextColor(com.ubai.veilpanel.ui.SettingsStyle.secondaryText(this));search.setPadding(dp(16),0,dp(16),0);search.setBackground(com.ubai.veilpanel.ui.SettingsStyle.rounded(this,com.ubai.veilpanel.ui.PanOSPTheme.blend(com.ubai.veilpanel.ui.SettingsStyle.panelBackground(this),com.ubai.veilpanel.ui.SettingsStyle.primaryText(this),.08f),16));search.setInputType(android.text.InputType.TYPE_CLASS_TEXT);search.setImeOptions(android.view.inputmethod.EditorInfo.IME_ACTION_SEARCH);toolbar.addView(search,new LinearLayout.LayoutParams(-1,dp(52)));windowRoot.addView(toolbar,1);
 
         addSetupContent(root);
 
-        windowRoot.setBackgroundColor(com.ubai.veilpanel.ui.PanOSPTheme.panelBackground(this));
+        windowRoot.setBackgroundColor(com.ubai.veilpanel.ui.SettingsStyle.panelBackground(this));
         scrollView.addView(root);
+        settingsNavigator=new com.ubai.veilpanel.ui.SettingsNavigator(this,toolbar,root,scrollView,search,key->selectedSettingsPage=key);
+        settingsNavigator.select(selectedSettingsPage);
 
 
+        com.ubai.veilpanel.ui.SettingsTypography.apply(windowRoot);
         windowRoot.post(windowRoot::requestApplyInsets);
-        com.ubai.veilpanel.ui.PanelStyle.apply(windowRoot);
+
         return windowRoot;
     }
 
+    @Override public void onBackPressed(){if(settingsNavigator!=null&&settingsNavigator.back())return;super.onBackPressed();}
+
+    private void showSettingsAppearance(){
+        String[] values={"system","light","dark"};String current=getSharedPreferences("panel_settings_ui",0).getString("appearance","system");int checked=java.util.Arrays.asList(values).indexOf(current);
+        new com.ubai.veilpanel.ui.SettingsDialogBuilder(this).setTitle("Settings appearance").setSingleChoiceItems(new String[]{"Follow system","Light","Dark"},Math.max(0,checked),(dialog,which)->{
+            getSharedPreferences("panel_settings_ui",0).edit().putString("appearance",values[which]).apply();dialog.dismiss();recreate();
+        }).setNegativeButton(android.R.string.cancel,null).show();
+    }
+
     public void refreshGlobalAppearance() {
-        if (appearanceRoot == null) return;
-        PanOSPPreferences appearance = new PanOSPPreferences(this);
-        appearanceRoot.setBackground(new GibBackgroundDrawable(
-                appearance.getThemeBackgroundType(),
-                appearance.getThemeBackgroundColor(),
-                appearance.getThemeBackgroundColor2(),
-                appearance.getThemeBackgroundDirection(),
-                0f));
+        if(appearanceRoot!=null)appearanceRoot.setBackgroundColor(com.ubai.veilpanel.ui.SettingsStyle.panelBackground(this));
     }
 
     private LinearLayout section(LinearLayout root,String key,String title,String summary,boolean initial) {
         com.ubai.veilpanel.ui.SettingsSection section=new com.ubai.veilpanel.ui.SettingsSection(this,key,title,summary,initial);
         LinearLayout.LayoutParams params=new LinearLayout.LayoutParams(-1,-2);params.topMargin=dp(12);root.addView(section,params);return section.content();
     }
-    private void help(LinearLayout root,String text){TextView note=new TextView(this);note.setText(text);note.setTextSize(14);note.setTextColor(com.ubai.veilpanel.ui.PanOSPTheme.secondaryText(this));note.setPadding(0,dp(8),0,dp(12));root.addView(note);}
+    private void help(LinearLayout root,String text){
+        TextView note=new TextView(this);note.setText(text);note.setTextSize(14);note.setLineSpacing(dp(3),1);note.setTextColor(com.ubai.veilpanel.ui.SettingsStyle.secondaryText(this));note.setPadding(dp(4),dp(8),dp(4),dp(16));
+        View last=root.getChildCount()==0?null:root.getChildAt(root.getChildCount()-1);String tag=last==null?"":String.valueOf(last.getTag());
+        if(last instanceof LinearLayout&&tag.startsWith("row:")){
+            LinearLayout row=(LinearLayout)last;View first=row.getChildAt(0);LinearLayout labels;
+            if(first instanceof TextView){row.removeViewAt(0);labels=new LinearLayout(this);labels.setOrientation(LinearLayout.VERTICAL);first.setLayoutParams(new LinearLayout.LayoutParams(-1,-2));labels.addView(first);row.addView(labels,0,new LinearLayout.LayoutParams(0,-2,1));}else labels=(LinearLayout)first;
+            note.setPadding(0,dp(4),0,0);labels.addView(note);row.setContentDescription(((TextView)labels.getChildAt(0)).getText()+". "+text);return;
+        }
+        if(last instanceof LinearLayout&&tag.startsWith("setting:")){
+            LinearLayout row=(LinearLayout)last;note.setPadding(0,dp(4),dp(8),dp(8));row.addView(note,Math.max(1,row.getChildCount()-1));return;
+        }
+        root.addView(note);
+    }
     private Button action(LinearLayout root,String title,Runnable run){
         Button button=new Button(this);button.setText(title);styleAction(button);button.setOnClickListener(v->run.run());LinearLayout.LayoutParams params=new LinearLayout.LayoutParams(-1,-2);params.topMargin=dp(8);root.addView(button,params);return button;
     }
     private void styleAction(Button button){
-        button.setAllCaps(false);button.setTextSize(15);button.setTextColor(com.ubai.veilpanel.ui.PanOSPTheme.primaryText(this));button.setMinHeight(dp(48));button.setMinimumHeight(dp(48));button.setPadding(dp(16),dp(12),dp(16),dp(12));button.setStateListAnimator(null);
-        GradientDrawable background=new GradientDrawable();background.setColor(com.ubai.veilpanel.ui.PanOSPTheme.blend(com.ubai.veilpanel.ui.PanOSPTheme.panelBackground(this),com.ubai.veilpanel.ui.PanOSPTheme.primaryText(this),.09f));background.setCornerRadius(dp(12));button.setBackground(background);
+        button.setAllCaps(false);button.setTextSize(16);button.setTextColor(com.ubai.veilpanel.ui.SettingsStyle.primaryText(this));button.setMinHeight(dp(64));button.setMinimumHeight(dp(64));button.setMinWidth(0);button.setMinimumWidth(0);button.setGravity(Gravity.START|Gravity.CENTER_VERTICAL);button.setPadding(dp(20),dp(16),dp(20),dp(16));button.setStateListAnimator(null);
+        button.setBackground(com.ubai.veilpanel.ui.SettingsStyle.touch(this,Color.TRANSPARENT,4));
     }
     private void addOption(LinearLayout root,String key){for(com.ubai.veilpanel.config.PanelAppearance.Option option:com.ubai.veilpanel.config.PanelAppearance.OPTIONS)if(option.key.equals(key)){addGlassSlider(root,option.label,option.min,option.max,option.key,option.initial);return;}}
     private void addThemePresets(LinearLayout root){
-        LinearLayout box=new LinearLayout(this);box.setTag("theme_presets");box.setOrientation(LinearLayout.VERTICAL);box.setPadding(dp(16),dp(18),dp(16),dp(16));
-        int accent=com.ubai.veilpanel.ui.PanOSPTheme.accent(this),background=com.ubai.veilpanel.ui.PanOSPTheme.panelBackground(this);
-        GradientDrawable surface=new GradientDrawable();surface.setColor(com.ubai.veilpanel.ui.PanOSPTheme.blend(background,accent,.09f));surface.setCornerRadius(dp(20));surface.setStroke(dp(1),com.ubai.veilpanel.ui.PanOSPTheme.blend(background,accent,.5f));box.setBackground(surface);
-        TextView heading=new TextView(this);heading.setText("Start with a theme");heading.setTextSize(21);heading.setTextColor(com.ubai.veilpanel.ui.PanOSPTheme.primaryText(this));heading.setTypeface(android.graphics.Typeface.create(android.graphics.Typeface.create("sans-serif",android.graphics.Typeface.NORMAL),600,false));box.addView(heading);
-        help(box,"Choose a look, then fine-tune it below. Themes change appearance only. Undo brings back your previous look.");
-        for(int row=0;row<2;row++){
-            LinearLayout choices=new LinearLayout(this);box.addView(choices,new LinearLayout.LayoutParams(-1,-2));
-            for(int column=0;column<2;column++){
-                final int index=row*2+column;Button choice=new Button(this);styleAction(choice);
-                choice.setTag("theme:"+com.ubai.veilpanel.config.PanelThemePresets.IDS[index]);
-                choice.setText(com.ubai.veilpanel.config.PanelThemePresets.NAMES[index]+"\n"+com.ubai.veilpanel.config.PanelThemePresets.DESCRIPTIONS[index]);choice.setMinHeight(dp(100));choice.setTextSize(14);
-                LinearLayout.LayoutParams placement=new LinearLayout.LayoutParams(0,-2,1);placement.topMargin=dp(8);if(column==0)placement.setMarginEnd(dp(8));choices.addView(choice,placement);
-                choice.setOnClickListener(v->{try{
-                    com.ubai.veilpanel.config.PanelThemePresets.apply(this,com.ubai.veilpanel.config.PanelThemePresets.IDS[index]);
-                    android.widget.Toast.makeText(this,com.ubai.veilpanel.config.PanelThemePresets.NAMES[index]+" theme applied",android.widget.Toast.LENGTH_SHORT).show();recreate();
-                }catch(IllegalStateException unavailable){android.widget.Toast.makeText(this,"Could not save your previous look. Theme kept unchanged.",android.widget.Toast.LENGTH_LONG).show();}});
-            }
+        LinearLayout box=new LinearLayout(this);box.setTag("theme_presets");box.setOrientation(LinearLayout.VERTICAL);box.setPadding(0,dp(8),0,dp(16));
+        int accent=com.ubai.veilpanel.ui.SettingsStyle.accent(this),background=com.ubai.veilpanel.ui.SettingsStyle.panelBackground(this);
+
+        TextView heading=new TextView(this);heading.setText("Presets");heading.setTextSize(34);heading.setPadding(dp(4),dp(20),0,dp(28));heading.setTextColor(com.ubai.veilpanel.ui.SettingsStyle.primaryText(this));heading.setTypeface(android.graphics.Typeface.create(android.graphics.Typeface.create("sans-serif",android.graphics.Typeface.NORMAL),600,false));box.addView(heading);
+        help(box,"Swipe to explore the presets. Tap a card to apply its look; Undo restores your previous appearance.");
+        android.widget.HorizontalScrollView carousel=new android.widget.HorizontalScrollView(this);carousel.setTag("theme_carousel");carousel.setHorizontalScrollBarEnabled(false);carousel.setClipToPadding(true);carousel.setHorizontalFadingEdgeEnabled(true);carousel.setFadingEdgeLength(dp(20));
+        LinearLayout choices=new LinearLayout(this);choices.setPadding(0,dp(4),dp(12),dp(8));carousel.addView(choices);box.addView(carousel,new LinearLayout.LayoutParams(-1,-2));
+        for(int i=0;i<com.ubai.veilpanel.config.PanelThemePresets.IDS.length;i++){
+            final int index=i;LinearLayout choice=new LinearLayout(this);choice.setOrientation(LinearLayout.VERTICAL);choice.setPadding(dp(16),dp(10),dp(16),dp(16));choice.setTag("theme:"+com.ubai.veilpanel.config.PanelThemePresets.IDS[index]);choice.setClickable(true);choice.setFocusable(true);choice.setBackground(com.ubai.veilpanel.ui.SettingsStyle.touch(this,com.ubai.veilpanel.ui.PanOSPTheme.blend(background,accent,.08f),18));
+            TextView name=new TextView(this);name.setText(com.ubai.veilpanel.config.PanelThemePresets.NAMES[index]);name.setTextSize(16);name.setTypeface(android.graphics.Typeface.DEFAULT_BOLD);name.setTextColor(com.ubai.veilpanel.ui.SettingsStyle.primaryText(this));name.setPadding(dp(4),dp(12),dp(4),dp(4));choice.addView(name);
+            TextView description=new TextView(this);description.setText(com.ubai.veilpanel.config.PanelThemePresets.DESCRIPTIONS[index]);description.setTextSize(14);description.setMinHeight(dp(44));description.setTextColor(com.ubai.veilpanel.ui.SettingsStyle.secondaryText(this));description.setPadding(dp(4),0,dp(4),0);choice.addView(description);
+            java.util.Map<String,Object> preset=com.ubai.veilpanel.config.PanelThemePresets.values(com.ubai.veilpanel.config.PanelThemePresets.IDS[index]);
+            TextView details=new TextView(this);details.setText("Card opacity  "+preset.get("glass_opacity")+"%\nWallpaper blur  "+preset.get("blur")+"\nClock size  "+preset.get("clock_size"));details.setTextSize(14);details.setLineSpacing(dp(6),1);details.setTextColor(com.ubai.veilpanel.ui.SettingsStyle.secondaryText(this));details.setPadding(dp(4),dp(16),dp(4),dp(12));choice.addView(details);
+            TextView apply=new TextView(this);apply.setText("Apply theme  →");apply.setTextSize(14);apply.setTextColor(accent);apply.setPadding(dp(4),dp(8),dp(4),0);choice.addView(apply);
+            choice.setContentDescription("Apply "+com.ubai.veilpanel.config.PanelThemePresets.NAMES[index]+" theme. "+com.ubai.veilpanel.config.PanelThemePresets.DESCRIPTIONS[index]+". "+details.getText());
+            LinearLayout.LayoutParams placement=new LinearLayout.LayoutParams(dp(220),-1);placement.setMarginEnd(dp(12));choices.addView(choice,placement);
+            choice.setOnClickListener(v->{try{
+                com.ubai.veilpanel.config.PanelThemePresets.apply(this,com.ubai.veilpanel.config.PanelThemePresets.IDS[index]);
+                android.widget.Toast.makeText(this,com.ubai.veilpanel.config.PanelThemePresets.NAMES[index]+" theme applied",android.widget.Toast.LENGTH_SHORT).show();recreate();
+            }catch(IllegalStateException unavailable){android.widget.Toast.makeText(this,"Could not save your previous look. Theme kept unchanged.",android.widget.Toast.LENGTH_LONG).show();}});
         }
-        help(box,"Glass uses your saved panel wallpaper; without one, cards use a frosted fallback. Gestures, recovery options and access stay as configured.");
+        help(box,"Changes apply the next time the panel opens. Return to settings to fine-tune each look. Tap a slider value to enter an exact number.\n\nGlass uses your saved panel wallpaper; without one, cards use a frosted fallback. Gestures, recovery options and access stay as configured.");
         if(com.ubai.veilpanel.config.PanelThemePresets.canUndo(this)){
             Button undo=action(box,"Undo last theme",()->{if(com.ubai.veilpanel.config.PanelThemePresets.undo(this))recreate();else android.widget.Toast.makeText(this,"Previous look could not be restored",android.widget.Toast.LENGTH_SHORT).show();});undo.setTag("theme:undo");
         }
-        LinearLayout.LayoutParams placement=new LinearLayout.LayoutParams(-1,-2);placement.bottomMargin=dp(12);root.addView(box,placement);
+        LinearLayout.LayoutParams placement=new LinearLayout.LayoutParams(-1,-2);placement.topMargin=dp(24);placement.bottomMargin=dp(4);root.addView(box,placement);
     }
 
     private void addSetupContent(LinearLayout root) {
-        addThemePresets(root);
-        help(root,"Customize your notification panel. Your changes apply the next time it opens.");
-        action(root,getString(R.string.shortcut_open_notifications),()->{if(!com.ubai.veilpanel.accessibility.PanOSPAccessibilityServiceCore.requestPanelOpen())android.widget.Toast.makeText(this,R.string.shortcut_enable_service,android.widget.Toast.LENGTH_LONG).show();});
         boolean ready=isAccessibilityServiceEnabled()&&isNotificationListenerEnabled()&&Settings.canDrawOverlays(this);
         LinearLayout access=section(root,"access","Setup & access",ready?"Required access is enabled":"Enable the panel and its wallpaper",!ready);
         accessibilityButton=addSetupButton(access,R.string.setup_accessibility,v->openAccessibilitySettings());styleAction(accessibilityButton);
@@ -500,11 +523,15 @@ public class MainActivity extends Activity {
         help(access,"Accessibility handles gestures. Notification access supplies the cards. Display-over-apps access and a saved wallpaper let apps keep playing underneath. The lock screen stays with Android.");
         action(access,"Pause panel",()->sendBroadcast(new Intent(getPackageName()+".PAUSE").setPackage(getPackageName())));
 
+        action(access,"Open notification panel",()->{if(!com.ubai.veilpanel.accessibility.PanOSPAccessibilityServiceCore.requestPanelOpen())android.widget.Toast.makeText(this,R.string.shortcut_enable_service,android.widget.Toast.LENGTH_LONG).show();});
+        addThemePresets(root);
+
+
         LinearLayout gestures=section(root,"gestures","Gestures & shortcuts","Pull-down split and launcher actions",false);
         help(gestures,"Pull from the left for notifications and from the right for your original quick settings.");
         addGlassSlider(gestures,"Left notification area (%)",20,80,"split",50);
         addPanelSwitch(gestures,"Two swipes in fullscreen apps","fullscreen_two_swipe",true);
-        help(gestures,"The first fullscreen pull reveals Android's status bar. A fresh second pull opens Veil. A top-edge tap does not open Veil while the bar is hidden.");
+        help(gestures,"When both status and navigation bars are hidden, the first pull reveals Android's bars and a fresh second pull opens Veil. Apps that hide only the status bar open Veil with one pull.");
         help(gestures,"In any compatible launcher, choose this app’s Open notifications shortcut. No particular launcher is required.");
 
         LinearLayout handle=section(root,"handle","Dismiss handle","Line position, length and grab area",false);
@@ -520,6 +547,7 @@ public class MainActivity extends Activity {
         addGlassSlider(wallpaper,"Wallpaper blur",0,64,"blur",24);
         addPanelSwitch(wallpaper,"Follow wallpaper colours","dynamic",true);
         addGlassSlider(wallpaper,"Card opacity (%)",45,100,"glass_opacity",66);
+        help(wallpaper,"Bright wallpapers receive extra shading so notification text stays readable. Glass tint and card opacity are minimum values; contrast protection can increase them.");
         addPanelSwitch(wallpaper,"Frosted glass cards","reference_glass",false);
         addPanelSwitch(wallpaper,"Experimental glass material","experimental_glass",false);
         addPanelSwitch(wallpaper,"Borders around controls","control_borders",false);
@@ -539,7 +567,7 @@ public class MainActivity extends Activity {
         addPanelSwitch(liquid,"Colour dispersion","liquid_dispersion",true);
         addPanelSwitch(liquid,"Lens depth","liquid_depth",true);
         action(liquid,"Preview notification panel",()->{if(!com.ubai.veilpanel.accessibility.PanOSPAccessibilityServiceCore.requestPanelOpen())android.widget.Toast.makeText(this,R.string.shortcut_enable_service,android.widget.Toast.LENGTH_LONG).show();});
-        action(liquid,"Source & license",()->{try{String notice;try(java.io.InputStream input=getAssets().open("third_party/android-liquid-glass/NOTICE.txt")){notice=new String(input.readAllBytes(),java.nio.charset.StandardCharsets.UTF_8);}String license;try(java.io.InputStream input=getAssets().open("third_party/android-liquid-glass/LICENSE.txt")){license=new String(input.readAllBytes(),java.nio.charset.StandardCharsets.UTF_8);}new AlertDialog.Builder(this).setTitle("AndroidLiquidGlass · Kyant").setMessage(notice+"\n"+license).setPositiveButton(android.R.string.ok,null).setNeutralButton("Project",(d,w)->startActivity(new Intent(Intent.ACTION_VIEW,android.net.Uri.parse("https://github.com/Kyant0/AndroidLiquidGlass")))).show();}catch(java.io.IOException unavailable){android.widget.Toast.makeText(this,"License file unavailable",android.widget.Toast.LENGTH_SHORT).show();}});
+        action(liquid,"Source & license",()->{try{String notice;try(java.io.InputStream input=getAssets().open("third_party/android-liquid-glass/NOTICE.txt")){notice=new String(input.readAllBytes(),java.nio.charset.StandardCharsets.UTF_8);}String license;try(java.io.InputStream input=getAssets().open("third_party/android-liquid-glass/LICENSE.txt")){license=new String(input.readAllBytes(),java.nio.charset.StandardCharsets.UTF_8);}new com.ubai.veilpanel.ui.SettingsDialogBuilder(this).setTitle("AndroidLiquidGlass · Kyant").setMessage(notice+"\n"+license).setPositiveButton(android.R.string.ok,null).setNeutralButton("Project",(d,w)->startActivity(new Intent(Intent.ACTION_VIEW,android.net.Uri.parse("https://github.com/Kyant0/AndroidLiquidGlass")))).show();}catch(java.io.IOException unavailable){android.widget.Toast.makeText(this,"License file unavailable",android.widget.Toast.LENGTH_SHORT).show();}});
 
         LinearLayout notifications=section(root,"notifications","Notifications","Preview length and expanded messages",false);
         addGlassSlider(notifications,"Description brightness (%)",0,100,"description_brightness",0);
@@ -574,10 +602,10 @@ public class MainActivity extends Activity {
         help(header,"For a large shaded clock, choose Sculpted light, centre the clock and increase its size. Hidden controls remain available from the app; the dismiss handle still closes the panel.");
 
         LinearLayout type=section(root,"typography","Typography & icons","Fonts, text sizes and notification icons",false);
-        action(type,"Font family",()->{String[] labels={"System","Josefin Sans","Serif","Saved custom font"},values={"system","josefin","serif","custom"};new AlertDialog.Builder(this).setTitle("Font family").setItems(labels,(dialog,which)->{getSharedPreferences("veil_panel",0).edit().putString("font_family",values[which]).apply();recreate();}).show();});
+        action(type,"Font family",()->{String[] labels={"System","Josefin Sans","Serif","Saved custom font"},values={"system","josefin","serif","custom"};new com.ubai.veilpanel.ui.SettingsDialogBuilder(this).setTitle("Font family").setItems(labels,(dialog,which)->{getSharedPreferences("veil_panel",0).edit().putString("font_family",values[which]).apply();recreate();}).show();});
         action(type,"Choose custom font (TTF / OTF)",()->startActivityForResult(new Intent(Intent.ACTION_OPEN_DOCUMENT).setType("*/*").addCategory(Intent.CATEGORY_OPENABLE),REQUEST_CUSTOM_FONT));
         help(type,"Choose a TTF or OTF file up to 20 MB. A private copy is saved for offline use. Font family lets you switch back at any time.");
-        action(type,"Remove saved custom font",()->new AlertDialog.Builder(this).setTitle("Remove custom font?").setMessage("The panel will return to the system font. Your original file stays unchanged.").setNegativeButton("Cancel",null).setPositiveButton("Remove",(d,w)->{com.ubai.veilpanel.ui.CustomFont.clear(this);recreate();}).show());
+        action(type,"Remove saved custom font",()->new com.ubai.veilpanel.ui.SettingsDialogBuilder(this).setTitle("Remove custom font?").setMessage("The panel will return to the system font. Your original file stays unchanged.").setNegativeButton("Cancel",null).setPositiveButton("Remove",(d,w)->{com.ubai.veilpanel.ui.CustomFont.clear(this);recreate();}).show());
         for(String key:new String[]{"headline_size","body_size","time_size","font_weight","icon_size","icon_corner"})addOption(type,key);
         addGlassSlider(type,"Control icon size",16,26,"control_icon_size",18);
 
@@ -599,8 +627,8 @@ public class MainActivity extends Activity {
         addLanguageControl(advanced);
         addPanelSwitch(advanced,"Preview saved wallpaper in legacy backdrop","fallback_always",false);
         help(advanced,"The legacy backdrop is used if the wallpaper or display-over-apps access is missing. It can pause the app underneath.");
-        action(advanced,"Reset layout sizes",()->new AlertDialog.Builder(this).setTitle("Reset layout sizes?").setMessage("Reset card, text and icon sizes. Keep your wallpaper, colours and gestures.").setNegativeButton(android.R.string.cancel,null).setPositiveButton("Reset",(d,w)->{com.ubai.veilpanel.config.PanelAppearance.reset(this);recreate();}).show());
-        action(advanced,"Remove saved wallpaper",()->new AlertDialog.Builder(this).setTitle("Remove panel wallpaper?").setMessage("Delete the private saved copy. The panel will use its legacy backdrop until you choose an image again.").setNegativeButton(android.R.string.cancel,null).setPositiveButton("Remove",(d,w)->IMAGE_WORK.execute(()->{com.ubai.veilpanel.image.PowerSaverBackdrop.clear(getApplicationContext());runOnUiThread(()->{if(!isDestroyed()&&!isFinishing())recreate();});})).show());
+        action(advanced,"Reset layout sizes",()->new com.ubai.veilpanel.ui.SettingsDialogBuilder(this).setTitle("Reset layout sizes?").setMessage("Reset card, text and icon sizes. Keep your wallpaper, colours and gestures.").setNegativeButton(android.R.string.cancel,null).setPositiveButton("Reset",(d,w)->{com.ubai.veilpanel.config.PanelAppearance.reset(this);recreate();}).show());
+        action(advanced,"Remove saved wallpaper",()->new com.ubai.veilpanel.ui.SettingsDialogBuilder(this).setTitle("Remove panel wallpaper?").setMessage("Delete the private saved copy. The panel will use its legacy backdrop until you choose an image again.").setNegativeButton(android.R.string.cancel,null).setPositiveButton("Remove",(d,w)->IMAGE_WORK.execute(()->{com.ubai.veilpanel.image.PowerSaverBackdrop.clear(getApplicationContext());runOnUiThread(()->{if(!isDestroyed()&&!isFinishing())recreate();});})).show());
         help(advanced,"Veil Panel · 1.0.0\nBased on PanOSP · GPL-3.0-or-later\nNo Internet permission. Wallpaper and notification data stay on your device.");
     }
 
@@ -611,7 +639,7 @@ public class MainActivity extends Activity {
         row.setOnClickListener(v->{
             String value=getSharedPreferences("veil_panel",0).getString(key,initial);int checked=0;
             for(int i=0;i<values.length;i++)if(values[i].equals(value))checked=i;
-            new AlertDialog.Builder(this).setTitle(title).setSingleChoiceItems(labels,checked,(dialog,which)->{
+            new com.ubai.veilpanel.ui.SettingsDialogBuilder(this).setTitle(title).setSingleChoiceItems(labels,checked,(dialog,which)->{
                 getSharedPreferences("veil_panel",0).edit().putString(key,values[which]).apply();
                 row.setText(title+": "+labels[which]);dialog.dismiss();
             }).setNegativeButton(android.R.string.cancel,null).show();
@@ -619,24 +647,29 @@ public class MainActivity extends Activity {
     }
 
     private void addPanelSwitch(LinearLayout root,String title,String key,boolean initial){
-        android.widget.Switch toggle=new android.widget.Switch(this);toggle.setTag("setting:"+key);toggle.setText(title);toggle.setTextSize(15);toggle.setTextColor(com.ubai.veilpanel.ui.PanOSPTheme.primaryText(this));toggle.setMinimumHeight(dp(56));toggle.setPadding(0,dp(8),0,dp(8));toggle.setSwitchPadding(dp(16));toggle.setChecked(getSharedPreferences("veil_panel",0).getBoolean(key,initial));toggle.setOnCheckedChangeListener((v,value)->{getSharedPreferences("veil_panel",0).edit().putBoolean(key,value).apply();if("dynamic".equals(key))recreate();});root.addView(toggle,new LinearLayout.LayoutParams(-1,-2));
+        LinearLayout row=new LinearLayout(this);row.setTag("row:"+key);row.setGravity(Gravity.CENTER_VERTICAL);row.setPadding(dp(20),dp(16),dp(20),dp(16));row.setMinimumHeight(dp(72));row.setFocusable(true);
+        TextView label=new TextView(this);label.setText(title);label.setTextSize(16);label.setTextColor(com.ubai.veilpanel.ui.SettingsStyle.primaryText(this));row.addView(label,new LinearLayout.LayoutParams(0,-2,1));
+        com.google.android.material.materialswitch.MaterialSwitch toggle=new com.google.android.material.materialswitch.MaterialSwitch(this);toggle.setTag("setting:"+key);toggle.setContentDescription(title);toggle.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);toggle.setFocusable(false);toggle.setChecked(getSharedPreferences("veil_panel",0).getBoolean(key,initial));LinearLayout.LayoutParams switchParams=new LinearLayout.LayoutParams(-2,dp(48));switchParams.setMarginStart(dp(16));row.addView(toggle,switchParams);
+        row.setContentDescription(title);row.setAccessibilityDelegate(new View.AccessibilityDelegate(){@Override public void onInitializeAccessibilityNodeInfo(View host,android.view.accessibility.AccessibilityNodeInfo info){super.onInitializeAccessibilityNodeInfo(host,info);info.setClassName(android.widget.Switch.class.getName());info.setCheckable(true);info.setChecked(toggle.isChecked());}});
+        row.setOnClickListener(v->toggle.setChecked(!toggle.isChecked()));toggle.setOnCheckedChangeListener((v,value)->{getSharedPreferences("veil_panel",0).edit().putBoolean(key,value).apply();if("dynamic".equals(key))recreate();});root.addView(row,new LinearLayout.LayoutParams(-1,-2));
     }
     private void addGlassSlider(LinearLayout root,String title,int min,int max,String key,int initial) {
-        LinearLayout setting=new LinearLayout(this);setting.setTag("setting:"+key);setting.setOrientation(LinearLayout.VERTICAL);setting.setPadding(0,dp(12),0,dp(8));
-        LinearLayout row=new LinearLayout(this);row.setGravity(Gravity.CENTER_VERTICAL);TextView label=new TextView(this);label.setText(title);label.setTextSize(14);label.setTextColor(com.ubai.veilpanel.ui.PanOSPTheme.primaryText(this));row.addView(label,new LinearLayout.LayoutParams(0,-2,1));
-        TextView value=new TextView(this);value.setTextSize(14);value.setTextColor(com.ubai.veilpanel.ui.PanOSPTheme.accent(this));value.setGravity(Gravity.CENTER);value.setMinWidth(dp(48));value.setMinHeight(dp(44));value.setClickable(true);value.setFocusable(true);row.addView(value,new LinearLayout.LayoutParams(-2,-2));setting.addView(row);
-        android.widget.SeekBar seek=new android.widget.SeekBar(this);seek.setTag("value:"+key);seek.setMin(min);seek.setMax(max);seek.setProgress(getSharedPreferences("veil_panel",0).getInt(key,initial));seek.setMinimumHeight(dp(40));value.setText(String.valueOf(seek.getProgress()));value.setContentDescription(title+", "+seek.getProgress()+". Tap to enter a value.");setting.addView(seek,new LinearLayout.LayoutParams(-1,-2));root.addView(setting);
-        value.setOnClickListener(v->{android.widget.EditText input=new android.widget.EditText(this);input.setInputType(android.text.InputType.TYPE_CLASS_NUMBER|(min<0?android.text.InputType.TYPE_NUMBER_FLAG_SIGNED:0));input.setText(String.valueOf(seek.getProgress()));input.selectAll();new AlertDialog.Builder(this).setTitle(title+" ("+min+"–"+max+")").setView(input).setNegativeButton(android.R.string.cancel,null).setPositiveButton("Apply",(dialog,which)->{try{seek.setProgress(Math.max(min,Math.min(max,Integer.parseInt(input.getText().toString().trim()))));}catch(NumberFormatException ignored){}}).show();});
-        seek.setOnSeekBarChangeListener(new android.widget.SeekBar.OnSeekBarChangeListener(){
-            public void onProgressChanged(android.widget.SeekBar bar,int next,boolean user){value.setText(String.valueOf(next));value.setContentDescription(title+", "+next+". Tap to enter a value.");getSharedPreferences("veil_panel",0).edit().putInt(key,next).apply();}
-            public void onStartTrackingTouch(android.widget.SeekBar bar){}public void onStopTrackingTouch(android.widget.SeekBar bar){}
-        });
+        LinearLayout setting=new LinearLayout(this);setting.setTag("setting:"+key);setting.setOrientation(LinearLayout.VERTICAL);setting.setPadding(dp(20),dp(20),dp(12),dp(16));
+        LinearLayout row=new LinearLayout(this);row.setGravity(Gravity.CENTER_VERTICAL);TextView label=new TextView(this);label.setText(title);label.setTextSize(16);label.setTextColor(com.ubai.veilpanel.ui.SettingsStyle.primaryText(this));row.addView(label,new LinearLayout.LayoutParams(0,-2,1));
+        TextView value=new TextView(this);value.setTextSize(16);value.setTypeface(android.graphics.Typeface.DEFAULT_BOLD);value.setPadding(dp(12),0,dp(8),0);value.setTextColor(com.ubai.veilpanel.ui.SettingsStyle.primaryText(this));value.setGravity(Gravity.CENTER);value.setMinWidth(dp(48));value.setMinHeight(dp(48));value.setClickable(true);value.setFocusable(true);row.addView(value,new LinearLayout.LayoutParams(-2,-2));setting.addView(row);
+        String explanation=com.ubai.veilpanel.ui.SettingDescriptions.forKey(key);if(explanation!=null){TextView detail=new TextView(this);detail.setText(explanation);detail.setTextSize(14);detail.setLineSpacing(dp(3),1);detail.setTextColor(com.ubai.veilpanel.ui.SettingsStyle.secondaryText(this));detail.setPadding(0,0,dp(8),dp(8));setting.addView(detail);}
+        LinearLayout control=new LinearLayout(this);control.setGravity(Gravity.CENTER_VERTICAL);
+        com.google.android.material.slider.Slider slider=new com.google.android.material.slider.Slider(this);slider.setTag("value:"+key);slider.setValueFrom(min);slider.setValueTo(max);slider.setStepSize(1);slider.setValue(Math.max(min,Math.min(max,getSharedPreferences("veil_panel",0).getInt(key,initial))));slider.setContentDescription(title);slider.setTrackHeight(dp(16));slider.setThumbWidth(dp(4));slider.setThumbHeight(dp(44));slider.setThumbTrackGapSize(dp(6));slider.setTrackStopIndicatorSize(dp(4));slider.setTrackInsideCornerSize(dp(2));slider.setTickVisible(false);slider.setLabelBehavior(com.google.android.material.slider.LabelFormatter.LABEL_GONE);control.addView(slider,new LinearLayout.LayoutParams(0,dp(56),1));
+        Button reset=new Button(this);reset.setTag("reset:"+key);reset.setText("↺");reset.setTextSize(26);reset.setTextColor(com.ubai.veilpanel.ui.SettingsStyle.secondaryText(this));reset.setContentDescription("Reset "+title+" to "+initial);reset.setMinWidth(0);reset.setMinimumWidth(0);reset.setPadding(0,0,0,0);reset.setBackground(com.ubai.veilpanel.ui.SettingsStyle.touch(this,Color.TRANSPARENT,24));control.addView(reset,new LinearLayout.LayoutParams(dp(48),dp(48)));reset.setOnClickListener(v->slider.setValue(initial));setting.addView(control);root.addView(setting,new LinearLayout.LayoutParams(-1,-2));
+        Runnable refresh=()->{int next=Math.round(slider.getValue());value.setText(next+(title.contains("%")?"%":""));value.setContentDescription(title+", "+next+". Tap to enter a value.");reset.setEnabled(next!=initial);reset.setAlpha(next==initial?.35f:1);};refresh.run();
+        value.setOnClickListener(v->{android.widget.EditText input=new android.widget.EditText(this);input.setInputType(android.text.InputType.TYPE_CLASS_NUMBER|(min<0?android.text.InputType.TYPE_NUMBER_FLAG_SIGNED:0));input.setText(String.valueOf(Math.round(slider.getValue())));input.selectAll();new com.ubai.veilpanel.ui.SettingsDialogBuilder(this).setTitle(title+" ("+min+"–"+max+")").setView(input).setNegativeButton(android.R.string.cancel,null).setPositiveButton("Apply",(dialog,which)->{try{slider.setValue(Math.max(min,Math.min(max,Integer.parseInt(input.getText().toString().trim()))));}catch(NumberFormatException ignored){}}).show();});
+        slider.addOnChangeListener((bar,next,user)->{getSharedPreferences("veil_panel",0).edit().putInt(key,Math.round(next)).apply();refresh.run();});
     }
 
     private void addLanguageControl(LinearLayout root) {
         TextView heading = new TextView(this);
         heading.setText(R.string.app_language);
-        heading.setTextColor(com.ubai.veilpanel.ui.PanOSPTheme.secondaryText(this));
+        heading.setTextColor(com.ubai.veilpanel.ui.SettingsStyle.secondaryText(this));
         heading.setTextSize(16);
         heading.setPadding(0, dp(24), 0, dp(4));
         root.addView(heading);
@@ -644,13 +677,13 @@ public class MainActivity extends Activity {
         Button button = new Button(this);
         button.setAllCaps(false);
         button.setText(getString(R.string.app_language_value, getCurrentLanguageLabel()));
-        button.setTextColor(com.ubai.veilpanel.ui.PanOSPTheme.primaryText(this));
+        button.setTextColor(com.ubai.veilpanel.ui.SettingsStyle.primaryText(this));
         button.setMinHeight(dp(52));
         GradientDrawable languageBackground = new GradientDrawable();
         languageBackground.setColor(Color.argb(20, 255, 255, 255));
         languageBackground.setCornerRadius(dp(14));
         languageBackground.setStroke(dp(1), Color.argb(40, 255, 255, 255));
-        button.setBackground(languageBackground);
+        styleAction(button);
         button.setStateListAnimator(null);
         button.setOnClickListener(v -> showLanguageDialog());
 
@@ -699,7 +732,7 @@ public class MainActivity extends Activity {
             }
         }
 
-        PanOSPDialogStyler.show(new AlertDialog.Builder(this)
+        new com.ubai.veilpanel.ui.SettingsDialogBuilder(this)
                 .setTitle(R.string.app_language)
                 .setSingleChoiceItems(labels, checked, (dialog, which) -> {
                     LocaleList selected = tags[which].isEmpty()
@@ -708,7 +741,7 @@ public class MainActivity extends Activity {
                     manager.setApplicationLocales(selected);
                     dialog.dismiss();
                 })
-                .setNegativeButton(android.R.string.cancel, null));
+                .setNegativeButton(android.R.string.cancel, null).show();
     }
 
     private Button addSetupButton(
@@ -719,7 +752,7 @@ public class MainActivity extends Activity {
         Button button = new Button(this);
         button.setAllCaps(false);
         button.setOnClickListener(listener);
-        button.setTextColor(com.ubai.veilpanel.ui.PanOSPTheme.primaryText(this));
+        button.setTextColor(com.ubai.veilpanel.ui.SettingsStyle.primaryText(this));
         button.setMinHeight(dp(52));
         GradientDrawable buttonBackground = new GradientDrawable();
         buttonBackground.setColor(Color.argb(20, 255, 255, 255));
@@ -963,7 +996,7 @@ public class MainActivity extends Activity {
     }
 
     private void showBackgroundReselectionDialog() {
-        PanOSPDialogStyler.show(new AlertDialog.Builder(this)
+        new com.ubai.veilpanel.ui.SettingsDialogBuilder(this)
                 .setMessage(
                         R.string.panel_config_background_unavailable
                 )
@@ -971,13 +1004,13 @@ public class MainActivity extends Activity {
                         R.string.panel_config_background_reselect,
                         (dialog, which) -> selectPanelBackgroundImage()
                 )
-                .setNegativeButton(R.string.panel_config_background_later, null));
+                .setNegativeButton(R.string.panel_config_background_later, null).show();
     }
 
     private void showConfigBackupMessage(int messageRes) {
-        PanOSPDialogStyler.show(new AlertDialog.Builder(this)
+        new com.ubai.veilpanel.ui.SettingsDialogBuilder(this)
                 .setMessage(messageRes)
-                .setPositiveButton(android.R.string.ok, null));
+                .setPositiveButton(android.R.string.ok, null).show();
     }
 
     public void selectPanelBackgroundImage() {

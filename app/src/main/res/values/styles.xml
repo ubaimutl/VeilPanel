@@ -21,4 +21,18 @@
         <item name="android:windowAnimationStyle">@null</item>
         <item name="android:colorAccent">@android:color/system_accent1_200</item>
     </style>
+    <style name="VeilSettingsDark" parent="Theme.Material3.DynamicColors.Dark.NoActionBar">
+        <item name="android:fontFamily">@font/roboto</item>
+        <item name="fontFamily">@font/roboto</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar">false</item>
+        <item name="android:enforceNavigationBarContrast">false</item>
+    </style>
+    <style name="VeilSettingsLight" parent="Theme.Material3.DynamicColors.Light.NoActionBar">
+        <item name="android:fontFamily">@font/roboto</item>
+        <item name="fontFamily">@font/roboto</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowLightNavigationBar">true</item>
+        <item name="android:enforceNavigationBarContrast">false</item>
+    </style>
 </resources>

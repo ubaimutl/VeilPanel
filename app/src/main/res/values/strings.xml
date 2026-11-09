@@ -17,7 +17,7 @@
     <string name="accessibility_summary">Top-edge gestures and the Veil notification panel.</string>
 
     <!-- First-run / setup -->
-    <string name="advanced_permissions_explanation">A custom notification panel over your apps. Pull down on the left for notifications; the right side keeps your original REDMAGIC quick settings.
+    <string name="advanced_permissions_explanation">A custom notification panel over your apps. Pull down on the left for notifications; the right side keeps Android’s native quick settings.
 
 Accessibility handles the top-edge gesture. Notification access displays your alerts. Your data stays on this device; this app has no Internet permission.
 

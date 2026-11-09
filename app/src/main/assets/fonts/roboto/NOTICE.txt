@@ -1,0 +1,5 @@
+Roboto variable font, unmodified.
+Copyright 2011 The Roboto Project Authors.
+Source: https://github.com/google/fonts/tree/main/ofl/roboto
+Font file: Roboto[wdth,wght].ttf
+License: SIL Open Font License 1.1; see OFL.txt.

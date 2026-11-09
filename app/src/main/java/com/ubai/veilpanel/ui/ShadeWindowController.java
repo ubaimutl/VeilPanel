@@ -50,10 +50,40 @@ public final class ShadeWindowController {
   boolean sent=service.dispatchGesture(gesture,null,handler);
   if(!sent)android.widget.Toast.makeText(service,"Gesture control unavailable. Re-enable Veil Panel in Accessibility.",android.widget.Toast.LENGTH_LONG).show();
  }
- private boolean expanded,tracking,suspended,closing,openingStreamActive,recoveringNativeShade;
- private boolean statusBarVisible=true,fullscreenRevealOnly;
+ private volatile boolean expanded;
+ private boolean tracking,suspended,closing,openingStreamActive,recoveringNativeShade;
+ private boolean statusBarVisible=true,navigationBarVisible,navigationBarPresent=true,fullscreenRevealOnly;
  private long fullscreenArmedUntil;
  private final Runnable expireFullscreenReveal=()->{fullscreenArmedUntil=0;if(!expanded)updateBounds();};
+ // With no navigation inset source, a hidden status bar may mean immersive mode
+ // (SystemUI only reveals bars) or a status-only app (SystemUI opens its shade).
+ // The first pull then stays reveal-only, and Veil watches briefly: if SystemUI
+ // registers its public dismiss-shade action, that pull opened the native shade,
+ // so Veil replaces it. Otherwise the existing second-pull rule applies.
+ private boolean observingNativeShade;
+ private long observeNativeShadeUntil;
+ private static final long OBSERVE_WHILE_HELD_MS=3000,OBSERVE_AFTER_RELEASE_MS=600,OBSERVE_POLL_MS=48;
+ private final Runnable observeNativeShade=this::checkObservedNativeShade;
+ private void startObservingNativeShade(){
+  observingNativeShade=true;observeNativeShadeUntil=android.os.SystemClock.uptimeMillis()+OBSERVE_WHILE_HELD_MS;
+  handler.removeCallbacks(observeNativeShade);handler.postDelayed(observeNativeShade,OBSERVE_POLL_MS);
+ }
+ private void observeAfterRelease(){
+  if(observingNativeShade)observeNativeShadeUntil=Math.min(observeNativeShadeUntil,android.os.SystemClock.uptimeMillis()+OBSERVE_AFTER_RELEASE_MS);
+ }
+ private void stopObservingNativeShade(){observingNativeShade=false;handler.removeCallbacks(observeNativeShade);}
+ /** Also called for SystemUI accessibility events, so detection is not limited to the poll interval. */
+ public void checkObservedNativeShade(){
+  if(!observingNativeShade)return;
+  handler.removeCallbacks(observeNativeShade);
+  if(expanded||suspended||android.os.SystemClock.uptimeMillis()>observeNativeShadeUntil){stopObservingNativeShade();return;}
+  if(system.hasDismissAction()){
+   stopObservingNativeShade();fullscreenRevealOnly=false;
+   open();if(expanded){openingStreamActive=false;startNativeRecovery();}
+   return;
+  }
+  handler.postDelayed(observeNativeShade,OBSERVE_POLL_MS);
+ }
  private boolean fullscreenProtection(){return service.getSharedPreferences("veil_panel",0).getBoolean("fullscreen_two_swipe",true);}
  private boolean fullscreenArmed(){return android.os.SystemClock.uptimeMillis()<fullscreenArmedUntil;}
  private void armFullscreenSecondPull(){
@@ -134,7 +164,7 @@ public final class ShadeWindowController {
   if(android.util.Log.isLoggable("VEIL_SHADE_DEBUG",android.util.Log.DEBUG))
    android.util.Log.d("VEIL_SHADE_DEBUG","uptime="+android.os.SystemClock.uptimeMillis()+" source="+source+" action="+MotionEvent.actionToString(event.getAction())+" x="+event.getRawX()+" y="+event.getRawY()+" expanded="+expanded+" revealOnly="+fullscreenRevealOnly);
  }
- private final android.content.SharedPreferences.OnSharedPreferenceChangeListener changed=(p,k)->{if("native_edge_recovery".equals(k)&&!p.getBoolean(k,true)){stopNativeRecovery();handler.removeCallbacks(uncoverStatus);setStatusRecoveryCovered(false);}else if("recovery_status_cover".equals(k)&&!p.getBoolean(k,true)){setStatusRecoveryCovered(false);}else if("fullscreen_two_swipe".equals(k)){tracking=false;fullscreenRevealOnly=false;fullscreenArmedUntil=0;handler.removeCallbacks(expireFullscreenReveal);updateBounds();}else if("split".equals(k)&&!expanded)updateBounds();};
+ private final android.content.SharedPreferences.OnSharedPreferenceChangeListener changed=(p,k)->{if("native_edge_recovery".equals(k)&&!p.getBoolean(k,true)){stopNativeRecovery();handler.removeCallbacks(uncoverStatus);setStatusRecoveryCovered(false);}else if("recovery_status_cover".equals(k)&&!p.getBoolean(k,true)){setStatusRecoveryCovered(false);}else if("fullscreen_two_swipe".equals(k)){tracking=false;fullscreenRevealOnly=false;fullscreenArmedUntil=0;stopObservingNativeShade();handler.removeCallbacks(expireFullscreenReveal);updateBounds();}else if("split".equals(k)&&!expanded)updateBounds();};
  public ShadeWindowController(AccessibilityService service,SystemShadeController system) {
   this.service=service;this.system=system;manager=service.getSystemService(WindowManager.class);
   statusHeight=SystemWindowMetrics.getStatusBarHeight(service);slop=ViewConfiguration.get(service).getScaledTouchSlop();
@@ -151,12 +181,12 @@ public final class ShadeWindowController {
    WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE|WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL|WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN|WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,PixelFormat.TRANSLUCENT);
   params.gravity=Gravity.TOP|Gravity.LEFT;params.setFitInsetsTypes(0);params.setTitle("VeilPanelWindow");
   params.layoutInDisplayCutoutMode=WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS;
-  manager.addView(root,params);addTopGuard();barMonitor=new FullscreenBarMonitor(service,this::statusBarVisibilityChanged);barMonitor.start();setSuspended(suspended);
+  manager.addView(root,params);addTopGuard();barMonitor=new FullscreenBarMonitor(service,(status,navigation,present)->{navigationBarVisible=navigation;navigationBarPresent=present;statusBarVisibilityChanged(status);});barMonitor.start();setSuspended(suspended);
  }
  public void stop(){handler.removeCallbacksAndMessages(null);if(barMonitor!=null){barMonitor.close();barMonitor=null;}service.getSharedPreferences("veil_panel",0).unregisterOnSharedPreferenceChangeListener(changed);collapse();if(topGuard!=null){manager.removeViewImmediate(topGuard);topGuard=null;topGuardParams=null;}if(root!=null){manager.removeViewImmediate(root);root=null;params=null;}}
  public void setSuspended(boolean value) {
   if(root!=null && suspended==value && ((root.getVisibility()==View.GONE)==value))return;
-  suspended=value;if(value){fullscreenArmedUntil=0;fullscreenRevealOnly=false;handler.removeCallbacks(expireFullscreenReveal);}if(root==null)return;
+  suspended=value;if(value){fullscreenArmedUntil=0;fullscreenRevealOnly=false;stopObservingNativeShade();handler.removeCallbacks(expireFullscreenReveal);}if(root==null)return;
   if(value){collapse();params.flags|=WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE;root.setVisibility(View.GONE);}
   else {params.flags&=~WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE;root.setVisibility(View.VISIBLE);}
   updateBounds();
@@ -212,15 +242,17 @@ public final class ShadeWindowController {
     KeyguardManager guard=service.getSystemService(KeyguardManager.class);
     if(guard==null||guard.isKeyguardLocked())return false;
     if(PanelRouting.isQuickSettings(event.getRawX(),width(),PanelRouting.split(service)))return false;
-    startX=event.getRawX();startY=event.getRawY();tracking=true;fullscreenRevealOnly=fullscreenProtection()&&!statusBarVisible&&!fullscreenArmed();return true;
+    startX=event.getRawX();startY=event.getRawY();tracking=true;fullscreenRevealOnly=fullscreenProtection()&&!statusBarVisible&&!navigationBarVisible&&!fullscreenArmed();
+    if(fullscreenRevealOnly&&!navigationBarPresent)startObservingNativeShade();else stopObservingNativeShade();return true;
    case MotionEvent.ACTION_MOVE:
     if(tracking&&!fullscreenRevealOnly&&event.getRawY()-startY>slop&&event.getRawY()-startY>Math.abs(event.getRawX()-startX))open();return true;
    case MotionEvent.ACTION_CANCEL:
     // SystemUI's spy window can claim the stream before sending a MOVE.
     // The DOWN was already confined to the custom notification half.
-    if(tracking){if(fullscreenRevealOnly)armFullscreenSecondPull();else{open();if(expanded){openingStreamActive=false;startNativeRecovery();}}}tracking=false;fullscreenRevealOnly=false;return true;
+    if(tracking){if(fullscreenRevealOnly){armFullscreenSecondPull();observeAfterRelease();}else{open();if(expanded){openingStreamActive=false;startNativeRecovery();}}}tracking=false;fullscreenRevealOnly=false;return true;
    case MotionEvent.ACTION_UP:
-    if(tracking&&event.getRawY()-startY>slop){if(fullscreenRevealOnly)armFullscreenSecondPull();else open();}tracking=false;fullscreenRevealOnly=false;return true;
+    if(tracking&&event.getRawY()-startY>slop){if(fullscreenRevealOnly)armFullscreenSecondPull();else open();}
+    if(tracking&&fullscreenRevealOnly)observeAfterRelease();tracking=false;fullscreenRevealOnly=false;return true;
    default:return tracking;
   }
  }
@@ -228,7 +260,7 @@ public final class ShadeWindowController {
  private void open(){
   if(expanded||suspended||root==null)return;
   KeyguardManager guard=service.getSystemService(KeyguardManager.class);if(guard==null||guard.isKeyguardLocked()){tracking=false;return;}
-  fullscreenArmedUntil=0;handler.removeCallbacks(expireFullscreenReveal);fullscreenRevealOnly=false;openingStreamActive=tracking;expanded=true;tracking=false;edgeStreamActive=false;edgeRight=false;edgePull=false;routePending=false;handler.removeCallbacks(nativeHandoff);
+  fullscreenArmedUntil=0;handler.removeCallbacks(expireFullscreenReveal);stopObservingNativeShade();fullscreenRevealOnly=false;openingStreamActive=tracking;expanded=true;tracking=false;edgeStreamActive=false;edgeRight=false;edgePull=false;routePending=false;handler.removeCallbacks(nativeHandoff);
   system.dismissSystemShade("left pull");
   backdrop=new PanelBackdropWindow(service);
   if(!com.ubai.veilpanel.image.PowerSaverBackdrop.available(service)||!backdrop.show()){

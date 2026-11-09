@@ -1,9 +1,11 @@
-# Security
+# Report a security concern
 
-Veil Panel is experimental and has no guaranteed security-support schedule. Review the source and permissions before using an experimental branch with sensitive notifications.
+Veil Panel is experimental and does not have a guaranteed security-support schedule.
 
-Do not post credentials, signing keys, personal notifications or an exploit containing private data in a public issue. Use GitHub’s private **Report a vulnerability** channel when it is enabled for the repository. If it is unavailable, open a non-sensitive issue requesting a private reporting channel, without the vulnerability details.
+Please do not put passwords, private notifications, signing keys or sensitive vulnerability details in a public issue.
 
-A useful private report identifies the affected version/branch, Android/ROM, minimal reproduction, impact and a synthetic proof of concept. Redact device/account identifiers and unrelated data. Do not test against another person’s device or accounts.
+Use GitHub’s private **Report a vulnerability** option if it is available for this repository. If it is not available, open an issue asking for a private reporting channel without describing the vulnerability publicly.
 
-A public release must include the exact source and license notices, and must not include development signing material. See [privacy](docs/PRIVACY.md).
+A helpful private report includes the affected Veil version, your Android version, what could go wrong and the steps needed to reproduce it. Use sample data and remove personal information. Test only on devices and accounts you own or have permission to test.
+
+For everyday problems, use the [bug report form](.github/ISSUE_TEMPLATE/bug_report.yml). Read [Privacy and permissions](docs/PRIVACY.md) before sharing logs or screenshots.

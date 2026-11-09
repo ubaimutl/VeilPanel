@@ -1,95 +1,108 @@
 # Veil Panel
 
-<img src="docs/branding/veil-mark.svg" width="80" height="80" alt="Veil Panel notification-stack logo">
+<img src="docs/branding/veil-mark.svg" width="80" height="80" alt="Veil Panel logo">
 
-A customizable Android notification panel with grouped cards, wallpaper-based glass and a curtain you can drag to close.
+**A customizable notification panel for Android.**
 
-**Experimental · Android 13+ · Tested only on REDMAGIC 10 Pro / Android 16**
+Veil Panel gives you control over how your notifications look and behave. Choose a preset or build your own layout with custom cards, fonts, colors, wallpapers, and glass effects.
 
-Veil Panel is an overlay built on [PanOSP](https://gitlab.com/gibdev-group/gibapps/panosp). It keeps your phone’s original quick settings on the right. It works without root or Shizuku on the tested setup, but does not replace SystemUI at the framework level.
+It works alongside your existing launcher and Quick Settings, without root or Shizuku.
 
-[Version 1.0.0 release notes](docs/releases/v1.0.0.md) · [Get started](docs/GETTING_STARTED.md) · [Known limitations](docs/LIMITATIONS.md) · [Build](docs/DEVELOPMENT.md) · [Contribute](CONTRIBUTING.md) · [License](LICENSE)
+**Android 13+ · Experimental**
+
+[Download](https://github.com/ubaimutl/VeilPanel/releases) · [Getting started](docs/GETTING_STARTED.md) · [Known limitations](docs/LIMITATIONS.md) · [Privacy](docs/PRIVACY.md)
 
 ## Preview
 
-Captured on REDMAGIC 10 Pro / Android 16 with Veil Panel and a customized appearance. These show one configuration; spacing, fonts, icons, glass and the dismiss handle can all be adjusted.
+These screenshots were captured on a REDMAGIC 10 Pro running Android 16. Veil Panel is highly customizable, so your setup doesn't have to look like this.
 
-| Notification panel | Silent notifications expanded |
-| :---: | :---: |
-| ![Notification panel with an app stack and collapsed silent notifications](docs/media/notification-panel.jpg) | ![Silent notification section expanded below the app stack](docs/media/silent-expanded.jpg) |
+|                            Notification panel                             |                  Expanded silent notifications                   |
+| :-----------------------------------------------------------------------: | :--------------------------------------------------------------: |
+| ![Grouped notifications in Veil Panel](docs/media/notification-panel.jpg) | ![Expanded silent notifications](docs/media/silent-expanded.jpg) |
 
-| Dragging the curtain closed | Customization settings |
-| :---: | :---: |
-| ![Panel partially dismissed using the bottom handle](docs/media/curtain-dismissal.jpg) | ![Veil Panel settings organized into collapsible sections](docs/media/appearance-settings.jpg) |
+|                                Drag to dismiss                                |                          Appearance settings                          |
+| :---------------------------------------------------------------------------: | :-------------------------------------------------------------------: |
+| ![Closing the panel with the bottom handle](docs/media/curtain-dismissal.jpg) | ![Veil Panel appearance settings](docs/media/appearance-settings.jpg) |
 
-### Gesture demo
+<a href="docs/media/veil-panel-demo.mp4"><img src="docs/media/gesture-demo.gif" width="320" alt="Opening Veil Panel, expanding silent notifications and dragging to dismiss"></a>
 
-<a href="docs/media/veil-panel-demo.mp4"><img src="docs/media/gesture-demo.gif" width="320" alt="Veil Panel opening, expanding silent notifications and closing with a curtain drag"></a>
+[Watch the full demo (23 seconds)](docs/media/veil-panel-demo.mp4)
 
-[Watch or download the full 23-second video](docs/media/veil-panel-demo.mp4).
+## Features
 
-## An iOS-style panel, adjusted your way
+- **Presets:** Start with a ready-made design and customize it.
+- **Notification cards:** Adjust spacing, sizes, corners, icons, and text.
+- **Clock and date:** Customize their appearance, typography, and layout.
+- **Wallpaper and glass:** Choose a background image and adjust blur and transparency.
+- **Backup and restore:** Save your configuration and bring it back whenever you need it.
 
-Veil Panel can be customized for an **iOS-style Notification Centre appearance**: rounded translucent cards, app stacks, wallpaper blur, custom fonts and a curtain-style dismissal. Adjust card margins, width, height, spacing, corner radius, icons and text, then tune the blur and optional glass effect to your taste. The appearance is configurable rather than a fixed theme.
+### Manage notifications
 
-This changes the notification panel’s presentation on Android. Device compatibility and system-control restrictions still apply.
+- Group notifications from the same app into expandable stacks.
+- Open, dismiss, or interact with notifications using their available actions.
+- Reply directly when a notification supports it.
+- Keep silent notifications collapsed until you want to see them.
 
-## What it does
+### Familiar gestures
 
-- Groups notifications by app, with expandable stacks and a collapsed silent section.
-- Opens notifications, exposes available actions and supports dismissal and replies where Android provides them.
-- Uses a saved wallpaper for the background, with adjustable blur and an optional Kyant-derived glass experiment.
-- Offers Minimal, Frosted, Glass and Readable appearance presets, with one-level Undo.
-- Lets you tune cards, custom TTF/OTF fonts, clock and date layout, an optional glass clock and status-bar scrolling.
-- Provides a draggable bottom handle with adjustable size, grab area and position.
-- Supports a launcher shortcut and a two-swipe protection option for fullscreen apps.
-- Exports and restores settings, saved wallpaper and imported fonts in a portable ZIP archive.
+Pull down from the left to open Veil Panel. Pull down from the right to access your phone's regular Quick Settings.
 
-There is no Internet permission, advertising or analytics SDK in the notification build. Read the [privacy details](docs/PRIVACY.md) before enabling notification and Accessibility access.
+Close Veil Panel by dragging the bottom handle or tapping it.
 
-## Compatibility and current status
+Your launcher, status bar, and system Quick Settings remain in place.
 
-The tested configuration uses **separate notification and quick-settings panels**: left opens Veil; right opens the original controls. Combined all-in-one native shades are not supported yet. A successful build or emulator test is not a compatibility claim for another phone.
+## Installation
 
-**Tested device:** no visible native-shade overlap is currently reported in the confirmed REDMAGIC 10 Pro / Android 16 / REDMAGIC OS 11.0.6_EU configuration. Other models and firmware versions remain unverified. This is an experimental overlay, so the result does not guarantee identical gesture handling on every device. See [limitations](docs/LIMITATIONS.md).
+1. Download the latest APK from [Releases](https://github.com/ubaimutl/VeilPanel/releases).
+2. Install and open Veil Panel.
+3. Go to **Setup & access** and enable the three requested permissions.
+4. Pull down from the left side of the screen to try the default panel.
+5. Open **Presets** or **Wallpaper & glass** to start customizing.
 
-## Design principles
+Veil Panel comes with a default layout, so you can try it immediately without configuring its appearance.
 
-Veil Panel is a **standalone notification panel**. It works with your existing launcher and does not require or bundle any launcher app.
+For permission explanations, gesture instructions, and backup options, see the [Getting started guide](docs/GETTING_STARTED.md).
 
-- **No root or Shizuku:** no privileged daemon, persistent ADB connection, bootloader unlock or system-partition modification is required or planned.
-- **Supported Android interfaces:** Accessibility for gestures, NotificationListenerService for alerts, overlays for presentation and system intents for fallbacks.
-- **Minimal, explicit access:** core notifications never depend on an ADB grant. An optional one-time grant may be considered for a specific future feature only with documentation, revocation and an ordinary-app fallback.
-- **Local data:** notification content, settings, wallpaper and fonts stay on the device; no analytics or networking is added.
-- **Capability checks:** unsupported actions must fail clearly, and device-specific methods need isolated implementations and physical-device testing.
+## Compatibility
 
-## Notification panel only
+**Currently tested on:**
 
-The custom control center is **disabled and unavailable** in this build. There is no setting, shortcut or legacy editor route to enable it. A right-side pull continues to use Android’s original quick settings.
+- REDMAGIC 10 Pro — Android 16
 
-Ordinary app permissions cannot reproduce every stock system toggle or guarantee exclusive native-gesture ownership. Root, Shizuku, privileged system installs and persistent shell backends are outside this project’s scope. This project does not claim to replace SystemUI.
+Veil Panel requires **Android 13 or newer** and a device with separate notification and Quick Settings panels.
 
-## Setup
+Devices that use a single combined panel are not supported yet.
 
-1. Install the APK from the [releases page](https://github.com/ubaimutl/VeilPanel/releases), or build the app using the instructions below.
-2. Enable Veil Panel’s **Accessibility service**, **Notification access** and **Display over other apps** using its setup page.
-3. Choose the original image used for your Home wallpaper. Veil keeps a private copy for its backdrop.
-4. Try left and right pulls, then adjust the split and appearance in settings.
+Android handles some system gestures differently depending on the manufacturer, so opening and dismissing Veil Panel may behave differently across devices and apps.
 
-If Android blocks a sideloaded Accessibility service, App info → menu → **Allow restricted settings** may be needed. Setup details are in the [getting-started guide](docs/GETTING_STARTED.md).
+The project is still experimental. Testing on other devices is welcome, but compatibility cannot be guaranteed.
 
-## Development
+See [Known limitations](docs/LIMITATIONS.md) for more details.
 
-JDK 21, Android SDK 36 and the checked-in Gradle wrapper are required. Java source compatibility is 17.
+## Privacy
 
-```sh
-./gradlew --no-daemon --max-workers=2 :app:testDebugUnitTest :app:lintRelease :app:assembleDebug
-```
+Veil Panel is designed to work entirely on your device.
 
-Required GibModules source is included in this repository. See the [build instructions](docs/DEVELOPMENT.md) for setup, testing and signing.
+- No Internet permission
+- No ads or analytics
+- No accounts or cloud services
+- Notifications, settings, and saved images stay local
+- Backups are exported only when you choose to save them
 
-Contributions are welcome, especially reproducible gesture-race cases, device compatibility testing, accessibility and performance. Read [CONTRIBUTING.md](CONTRIBUTING.md).
+The app needs access to notifications and certain system features to function. These permissions are explained in the [Privacy and permissions guide](docs/PRIVACY.md).
+
+## Contributing
+
+Contributions, bug reports, and device compatibility feedback are welcome.
+
+If something doesn't work, [open an issue](https://github.com/ubaimutl/VeilPanel/issues) and include your device model, Android version, and steps to reproduce the problem. Logs or screenshots can help, but make sure to remove any personal information.
+
+If you'd like to contribute code, start with [CONTRIBUTING.md](CONTRIBUTING.md) and the [development guide](docs/DEVELOPMENT.md).
+
+The required GibModules source is included in the repository.
 
 ## License and credits
 
-Veil Panel is distributed under **GPL-3.0-or-later**, preserving PanOSP’s license. The full text is in [LICENSE](LICENSE). [NOTICE](NOTICE) and [third-party notices](THIRD_PARTY_NOTICES.md) cover PanOSP, GibModules, the Apache-2.0 Kyant shaders and the OFL-licensed Josefin Sans font.
+Veil Panel is based on [PanOSP](https://gitlab.com/gibdev-group/gibapps/panosp) and is distributed under **GPL-3.0-or-later**.
+
+See [LICENSE](LICENSE), [NOTICE](NOTICE), and [third-party notices](THIRD_PARTY_NOTICES.md) for licensing information and credits for the original project, libraries, glass shaders, and fonts.

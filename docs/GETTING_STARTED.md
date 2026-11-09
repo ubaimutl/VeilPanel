@@ -1,35 +1,78 @@
 # Getting started
 
-Veil Panel requires Android 13+. Physical-device testing is limited to REDMAGIC 10 Pro / Android 16 with separate native notification and quick-settings panels. Combined native shades are not supported yet. See [limitations](LIMITATIONS.md).
+Veil Panel gives your notifications a separate, customizable panel. Your phone’s quick settings stay where they are: pull down from the right to use them.
 
-## Access
+You need Android 13 or later. So far, physical testing is limited to REDMAGIC 10 Pro with Android 16. Phones with a single combined notification and quick-settings panel are not supported yet. See [compatibility and limitations](LIMITATIONS.md).
 
-Install a compatible build and open the app. Enable these from Setup & access:
+## Install and enable the panel
 
-| Access | Purpose |
+Download the APK from the [releases page](https://github.com/ubaimutl/VeilPanel/releases), install it and open **Veil Panel**. Open **Setup & access** and follow each button to Android’s permission screen.
+
+| Permission | Why Veil needs it |
 | --- | --- |
-| Accessibility | Top-edge gestures, the trusted overlay and native-shade handoff; no app view-tree retrieval |
-| Notification access | Read current notifications and their available actions; dispatch requested dismissals |
-| Display over other apps | Saved-wallpaper backdrop without launching an Activity over your foreground app |
+| Accessibility | Opens Veil when you pull down from the notification side and helps keep Android’s panel from opening at the same time. |
+| Notification access | Shows your notifications and lets you use their available actions, replies and dismissals. |
+| Display over other apps | Shows the panel’s wallpaper over the app you are using, so that app can keep playing underneath. |
 
-If Android blocks sideloaded Accessibility access, App info → menu → **Allow restricted settings** may be needed. No root, Shizuku, ongoing ADB connection or one-time ADB grant is required.
+If Android says Accessibility access is restricted, open your phone’s **App info** page for Veil Panel. Open the menu and choose **Allow restricted settings**, if that option is available, then return to setup.
 
-Select the original image used as your Home wallpaper. A private copy supplies the backdrop; it does not change Home wallpaper. Without it or overlay access, the older Activity fallback can pause underlying video.
+You do not need root, Shizuku or a computer to use Veil. The default layout is ready to try once access is enabled.
 
-## Gestures and customization
+## Choose a background
 
-- Left pull opens notifications. Right pull opens Android’s original quick settings; the app has no custom control center.
-- Expand app stacks to see individual notifications. Silent notifications start collapsed at the bottom.
-- Drag the bottom handle upward, or tap it, to close. Adjust its line size, position and grab area in settings.
-- Fullscreen protection uses a first pull to reveal native bars and a fresh second pull to open notifications. Behavior varies by game and ROM.
-- Compatible launchers can use **Open notifications**, an ordinary app shortcut. No particular launcher is required.
+Open **Wallpaper & glass → Choose panel wallpaper**. Pick the image you want behind your notifications. To match your home screen, choose the same original image.
 
-Start with Minimal, Frosted, Glass or Readable at the top of settings, then customize further. Undo last theme restores the appearance immediately before the last preset. Export a backup before trying several presets.
+Veil saves its own copy. It does not change your home-screen wallpaper. If you change that wallpaper later, choose the new image in Veil too. Live wallpaper movement is not copied.
 
-Settings include card margins, dimensions, spacing, icons, text, blur, optional glass and clock/date controls. Wallpaper & glass → Scroll beneath status icons is enabled by default; turn it off to keep notification content below a wallpaper-backed status strip. Custom TTF/OTF fonts up to 20 MB are copied privately after validation. Keep original font/wallpaper files separately.
+If an app or video pauses when you open the panel, check that you have chosen a panel wallpaper and allowed **Display over other apps**.
 
-For an iOS-style appearance, tune rounded translucent cards, grouped stacks, fonts, wallpaper blur and curtain dismissal. This is a customizable presentation, not a replacement for Android SystemUI.
+## Open, read and close
 
-## Pause and updates
+- Pull down from the left side of the top edge to open Veil.
+- Pull down from the right side for your phone’s original quick settings.
+- Expand an app’s stack to read its notifications. Expand the silent section when you want to see quieter alerts.
+- Tap a notification to open it. Available actions and replies depend on the app that sent it.
+- Drag the bottom handle up, or tap it, to close Veil.
 
-Use Pause panel or disable only this app’s Accessibility service to return to native behavior. Do not uninstall or clear app storage if you want to retain configuration. An in-place APK update must keep the same application ID and signing certificate. Use Advanced & about → Backup & transfer settings to export or restore a portable ZIP. It includes saved wallpaper and imported fonts, but Android permission grants must be enabled separately. Treat the ZIP as personal data.
+In **Gestures & shortcuts**, change **Left notification area (%)** if you want more or less of the top edge to open Veil.
+
+**Two swipes in fullscreen apps** helps avoid accidental opening when an app hides both system bars. The first pull reveals the bars; a fresh second pull opens Veil. Apps hiding only the status bar use one pull. This can vary with your phone’s navigation setup; see [gesture help](LIMITATIONS.md#gestures-and-system-panels).
+
+You can also add Veil’s **Open notifications** shortcut through a launcher that supports app shortcuts.
+
+## Find a look you like
+
+Open **Presets** and try Minimal, Frosted, Glass, Readable or Demo. **Undo last theme** restores the look you had immediately before your most recent preset. It remembers one change, so save a backup if you want to keep several setups.
+
+Then explore the settings:
+
+| Setting | What you can change |
+| --- | --- |
+| Wallpaper & glass | Background image, blur, card opacity and status-bar appearance. |
+| Clock & header | Clock and date sizes, alignment and style. |
+| Notifications | How much notification text appears before and after expansion. |
+| Typography & icons | Panel fonts, text sizes and notification icons. |
+| Spacing & layout | Card width, height, gaps and margins. |
+| Liquid Glass | Glass highlights and other glass effects. |
+| Dismiss handle | Handle position and the size of the area you can grab. |
+| Motion | Scrolling bounce and help with gestures that open Android’s panel. |
+
+Use **Search settings** to find a setting by name. Tap a slider’s number to enter an exact value, or use its reset arrow to return to the default. Reopen the panel to see appearance changes.
+
+**Appearance** at the top of settings lets you choose a light or dark settings screen, or follow your phone’s theme. It does not change the notification panel’s look.
+
+You can import a TTF or OTF font, up to 20 MB, for the panel. Keep the original file in case you need it again.
+
+## Save or restore your setup
+
+Open **About & backup → Backup & transfer settings**, then choose **Export complete settings**. Choose where to save the ZIP file.
+
+The backup includes your panel settings, saved wallpaper and imported font. It does not include notifications or Android permissions. Keep it private, especially if it contains personal photos.
+
+To restore it, close the panel, return to **Backup & transfer settings** and choose **Import complete settings**. Importing replaces the current panel setup. If you are moving to another phone, enable the requested permissions there too.
+
+## Pause or update Veil
+
+Choose **Setup & access → Pause panel** to use Android’s panel again. To resume, return to setup and re-enable Veil’s Accessibility service.
+
+Install updates over the existing app to keep your settings. Avoid uninstalling or clearing storage unless you want to erase them. Export a backup before making a fresh installation. If Android refuses an update, see [update help](LIMITATIONS.md#updates-and-backups).

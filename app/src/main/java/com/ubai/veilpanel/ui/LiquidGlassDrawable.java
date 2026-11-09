@@ -92,7 +92,7 @@ final class LiquidGlassDrawable extends Drawable {
             }else{
                 material.setShader(wallpaper);rim.setShader(null);rim.setColor(Color.WHITE);
             }
-            material.setAlpha(alpha);tint.setAlpha(Math.round(tintAmount*alpha));rim.setAlpha(Math.round(highlight*alpha));
+            material.setAlpha(alpha);tint.setAlpha(Math.round(Math.max(tintAmount,backdrop.safetyTint())*alpha));rim.setAlpha(Math.round(highlight*alpha));
             canvas.drawRoundRect(shape,r,r,material);canvas.drawRoundRect(shape,r,r,tint);
             canvas.drawRoundRect(rimShape,r,r,rim);
         }catch(RuntimeException unavailable){fail(unavailable);fallback.setAlpha(alpha);fallback.draw(canvas);}

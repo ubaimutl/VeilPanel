@@ -51,7 +51,7 @@ public final class ShadeWindowController {
   if(!sent)android.widget.Toast.makeText(service,"Gesture control unavailable. Re-enable Veil Panel in Accessibility.",android.widget.Toast.LENGTH_LONG).show();
  }
  private volatile boolean expanded;
- private boolean tracking,suspended,closing,openingStreamActive,recoveringNativeShade;
+ private boolean tracking,suspended,closing,openingStreamActive,recoveringNativeShade,pullAreaEditing;
  private boolean statusBarVisible=true,navigationBarVisible,navigationBarPresent=true,fullscreenRevealOnly;
  private long fullscreenArmedUntil;
  private final Runnable expireFullscreenReveal=()->{fullscreenArmedUntil=0;if(!expanded)updateBounds();};
@@ -164,7 +164,7 @@ public final class ShadeWindowController {
   if(android.util.Log.isLoggable("VEIL_SHADE_DEBUG",android.util.Log.DEBUG))
    android.util.Log.d("VEIL_SHADE_DEBUG","uptime="+android.os.SystemClock.uptimeMillis()+" source="+source+" action="+MotionEvent.actionToString(event.getAction())+" x="+event.getRawX()+" y="+event.getRawY()+" expanded="+expanded+" revealOnly="+fullscreenRevealOnly);
  }
- private final android.content.SharedPreferences.OnSharedPreferenceChangeListener changed=(p,k)->{if("native_edge_recovery".equals(k)&&!p.getBoolean(k,true)){stopNativeRecovery();handler.removeCallbacks(uncoverStatus);setStatusRecoveryCovered(false);}else if("recovery_status_cover".equals(k)&&!p.getBoolean(k,true)){setStatusRecoveryCovered(false);}else if("fullscreen_two_swipe".equals(k)){tracking=false;fullscreenRevealOnly=false;fullscreenArmedUntil=0;stopObservingNativeShade();handler.removeCallbacks(expireFullscreenReveal);updateBounds();}else if("split".equals(k)&&!expanded)updateBounds();};
+ private final android.content.SharedPreferences.OnSharedPreferenceChangeListener changed=(p,k)->{if("native_edge_recovery".equals(k)&&!p.getBoolean(k,true)){stopNativeRecovery();handler.removeCallbacks(uncoverStatus);setStatusRecoveryCovered(false);}else if("recovery_status_cover".equals(k)&&!p.getBoolean(k,true)){setStatusRecoveryCovered(false);}else if("fullscreen_two_swipe".equals(k)){tracking=false;fullscreenRevealOnly=false;fullscreenArmedUntil=0;stopObservingNativeShade();handler.removeCallbacks(expireFullscreenReveal);updateBounds();}else if(("split".equals(k)||"pull_area_height".equals(k))&&!expanded)updateBounds();};
  public ShadeWindowController(AccessibilityService service,SystemShadeController system) {
   this.service=service;this.system=system;manager=service.getSystemService(WindowManager.class);
   statusHeight=SystemWindowMetrics.getStatusBarHeight(service);slop=ViewConfiguration.get(service).getScaledTouchSlop();
@@ -174,10 +174,10 @@ public final class ShadeWindowController {
   service.getSharedPreferences("veil_panel",0).registerOnSharedPreferenceChangeListener(changed);
   root=new FrameLayout(service){
    @Override public boolean dispatchTouchEvent(MotionEvent event){observeTouch("panel",event);return super.dispatchTouchEvent(event);}
-  };root.setBackgroundColor(Color.TRANSPARENT);root.setFocusableInTouchMode(true);
+  };root.setBackgroundColor(Color.TRANSPARENT);root.setDefaultFocusHighlightEnabled(false);
   root.setOnTouchListener(this::touch);
   root.setOnKeyListener((v,key,event)->{if(key==KeyEvent.KEYCODE_BACK&&expanded){if(event.getAction()==KeyEvent.ACTION_UP)animateClose();return true;}return false;});
-  params=new WindowManager.LayoutParams(triggerWidth(),statusHeight+dp(8),WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY,
+  params=new WindowManager.LayoutParams(triggerWidth(),PanelPullArea.height(service),WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY,
    WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE|WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL|WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN|WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,PixelFormat.TRANSLUCENT);
   params.gravity=Gravity.TOP|Gravity.LEFT;params.setFitInsetsTypes(0);params.setTitle("VeilPanelWindow");
   params.layoutInDisplayCutoutMode=WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS;
@@ -192,6 +192,7 @@ public final class ShadeWindowController {
   updateBounds();
  }
  private void statusBarVisibilityChanged(boolean visible){if(statusBarVisible!=visible){statusBarVisible=visible;if(!expanded){tracking=false;fullscreenRevealOnly=false;fullscreenArmedUntil=0;handler.removeCallbacks(expireFullscreenReveal);}updateBounds();}}
+ public void setPullAreaEditing(boolean editing){pullAreaEditing=editing;updateBounds();}
  public boolean isExpanded(){return expanded;}
  public boolean shouldSuppressSystemShade(){return !suspended&&((tracking&&!fullscreenRevealOnly)||expanded);}
  private int dp(int value){return SystemWindowMetrics.dp(service,value);}
@@ -208,7 +209,7 @@ public final class ShadeWindowController {
   if(backdrop!=null)backdrop.setCurtainOffset(offset);
  }
  private int expandedEdgeHeight(){return PanelSystemBars.visible(service)?statusHeight+dp(8):dp(12);}
- private int triggerWidth(){return Math.round(width()*PanelRouting.split(service)/100f);}
+ private int triggerWidth(){return PanelPullArea.width(service,width());}
  private void updateBounds(){
   if(root==null||params==null)return;
   // Blur lives in the wallpaper host below SystemUI, so real status icons stay sharp.
@@ -220,14 +221,14 @@ public final class ShadeWindowController {
   // Keep the complete status-bar touch band in fullscreen: real fingers
   // frequently start below the first four dp. The first stream is reveal-only;
   // native SystemUI observes it while a fresh second stream opens Veil.
-  if(suspended)params.flags|=WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE;
+  if(suspended||(!expanded&&pullAreaEditing))params.flags|=WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE;
   else params.flags&=~WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE;
   params.width=expanded?WindowManager.LayoutParams.MATCH_PARENT:triggerWidth();
-  params.height=expanded?SystemWindowMetrics.getUsableScreenHeight(service,manager,statusHeight):statusHeight+dp(8);
+  params.height=expanded?SystemWindowMetrics.getUsableScreenHeight(service,manager,statusHeight):PanelPullArea.height(service);
   manager.updateViewLayout(root,params);
   if(topGuard!=null&&topGuardParams!=null){
-   topGuardParams.width=expanded?-1:triggerWidth();topGuardParams.height=expanded?expandedEdgeHeight():statusHeight+dp(8);
-   if(suspended)topGuardParams.flags|=WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE;else topGuardParams.flags&=~WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE;
+   topGuardParams.width=expanded?-1:triggerWidth();topGuardParams.height=expanded?expandedEdgeHeight():PanelPullArea.height(service);
+   if(suspended||(!expanded&&pullAreaEditing))topGuardParams.flags|=WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE;else topGuardParams.flags&=~WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE;
    topGuard.setVisibility(suspended?View.GONE:View.VISIBLE);manager.updateViewLayout(topGuard,topGuardParams);
   }
  }
@@ -271,7 +272,7 @@ public final class ShadeWindowController {
   }
   params.flags&=~WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;updateBounds();
   if(backdrop!=null)backdrop.addPopupCover(root,statusHeight);
-  scroll=new ElasticPanelScrollView(service);scroll.setFillViewport(true);scroll.setVerticalScrollBarEnabled(false);scroll.setHorizontalScrollBarEnabled(false);scroll.setOverScrollMode(View.OVER_SCROLL_NEVER);scroll.setClipToPadding(false);
+  ElasticPanelScrollView list=new ElasticPanelScrollView(service);list.setOnEndSwipeDismiss(this::animateClose);scroll=list;scroll.setFillViewport(true);scroll.setVerticalScrollBarEnabled(false);scroll.setHorizontalScrollBarEnabled(false);scroll.setOverScrollMode(View.OVER_SCROLL_NEVER);scroll.setClipToPadding(false);
   content=new ShadeView(service,this::animateClose);scroll.addView(content,new ScrollView.LayoutParams(-1,-2));
   viewport=new PanelContentViewport(service);viewport.setClipChildren(true);viewport.addView(scroll,new FrameLayout.LayoutParams(-1,-1));
   boolean beneathStatus=PanelSystemBars.visible(service)&&backdrop!=null&&service.getSharedPreferences("veil_panel",0).getBoolean("scroll_under_status_bar",true);
@@ -285,7 +286,7 @@ public final class ShadeWindowController {
    root.setClipBounds(new android.graphics.Rect(0,statusHeight,width(),curtainHeight()));
   }
   content.setPadding(content.getPaddingLeft(),content.getPaddingTop(),content.getPaddingRight(),content.getPaddingBottom()+dp(88));addDismissHandle();
-  content.onShown();root.requestFocus();scroll.setAlpha(1f);
+  content.onShown();root.setFocusableInTouchMode(true);root.requestFocus();scroll.setAlpha(1f);
   // Material position listeners run before recording the shared content.
   if(beneathStatus)backdrop.mirrorStatusContent(viewport,statusHeight);
   if(curtainEnabled()){
@@ -310,8 +311,8 @@ public final class ShadeWindowController {
     }
     super.dispatchDraw(canvas);
    }
-  };topGuard.setOnTouchListener((view,event)->{observeTouch("edge catcher",event);return expanded?topEdgeTouch(view,event):touch(view,event);});
-  WindowManager.LayoutParams edge=new WindowManager.LayoutParams(expanded?-1:triggerWidth(),expanded?expandedEdgeHeight():statusHeight+dp(8),WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY,WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE|WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL|WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,PixelFormat.TRANSLUCENT);
+  };topGuard.setBackgroundColor(Color.TRANSPARENT);topGuard.setDefaultFocusHighlightEnabled(false);topGuard.setOnTouchListener((view,event)->{observeTouch("edge catcher",event);return expanded?topEdgeTouch(view,event):touch(view,event);});
+  WindowManager.LayoutParams edge=new WindowManager.LayoutParams(expanded?-1:triggerWidth(),expanded?expandedEdgeHeight():PanelPullArea.height(service),WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY,WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE|WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL|WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,PixelFormat.TRANSLUCENT);
   edge.gravity=Gravity.TOP|Gravity.LEFT;edge.setFitInsetsTypes(0);edge.layoutInDisplayCutoutMode=WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS;edge.setTitle("VeilPanelTopGuard");topGuardParams=edge;manager.addView(topGuard,edge);
  }
  private void suppressLeftEdge(){
@@ -407,7 +408,7 @@ public final class ShadeWindowController {
   if(content!=null){content.onHidden();content=null;}
   if(root!=null&&scroll!=null){scroll.animate().withEndAction(null).cancel();if(viewport!=null)root.removeView(viewport);}scroll=null;viewport=null;
   if(root!=null&&dismissHandle!=null)root.removeView(dismissHandle);dismissHandle=null;
-  dismissMark=null;if(root!=null){root.setTranslationY(0);root.setClipBounds(null);}
+  dismissMark=null;if(root!=null){root.setFocusableInTouchMode(false);root.setFocusable(false);root.clearFocus();root.setTranslationY(0);root.setClipBounds(null);}
   WallpaperBackdropActivity.close();
   if(backdrop!=null){backdrop.close();backdrop=null;}
   if(params!=null){params.flags|=WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;updateBounds();}

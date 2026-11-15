@@ -47,6 +47,8 @@ These screenshots were captured on a REDMAGIC 10 Pro running Android 16. Veil Pa
 
 Pull down from the left to open Veil Panel. Pull down from the right to access your phone's regular Quick Settings.
 
+Adjust the pull area's height and width in **Gestures & shortcuts**, with a live outline to show its size. You can also enable a second upward swipe at the bottom of the notification list to close Veil, with a light vibration when it is ready.
+
 Close Veil Panel by dragging the bottom handle or tapping it.
 
 Your launcher, status bar, and system Quick Settings remain in place.

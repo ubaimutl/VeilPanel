@@ -8,6 +8,8 @@ import android.graphics.Shader;
 import android.widget.TextView;
 
 /** Optional shaded lettering. Static shader, no bitmap rendering or animation. */
+// The panel owns its typeface and shader; the AppCompat theme is settings-only.
+@android.annotation.SuppressLint("AppCompatCustomView")
 public final class SculptedClockView extends TextView {
     private final boolean sculpted;
     private final LiquidClockMaterial liquid;

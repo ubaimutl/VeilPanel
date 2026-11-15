@@ -129,10 +129,27 @@ public class MainActivity extends androidx.appcompat.app.AppCompatActivity {
 
         if (savedInstanceState != null) pendingBackgroundImageUri = savedInstanceState.getString("pending_background");
         setContentView(buildContent());
-        getOnBackInvokedDispatcher().registerOnBackInvokedCallback(android.window.OnBackInvokedDispatcher.PRIORITY_DEFAULT,()->{if(settingsNavigator==null||!settingsNavigator.back())finish();});
+        getOnBackPressedDispatcher().addCallback(this,new androidx.activity.OnBackPressedCallback(true){
+            @Override public void handleOnBackPressed(){if(settingsNavigator==null||!settingsNavigator.back())finish();}
+        });
         if(savedInstanceState==null&&getIntent().getBooleanExtra("open_transfer_settings",false))startActivityForResult(new Intent(this,SettingsTransferActivity.class),REQUEST_TRANSFER_SETTINGS);
         if(savedInstanceState==null&&getIntent().getBooleanExtra("open_liquid_settings",false))settingsNavigator.select("liquid");
     }
+
+    private com.ubai.veilpanel.ui.PullAreaPreview pullAreaPreview;
+    private Button pullAreaPreviewButton;
+    private void showPullAreaPreview() {
+        if(pullAreaPreview==null)pullAreaPreview=new com.ubai.veilpanel.ui.PullAreaPreview(this);
+        com.ubai.veilpanel.accessibility.PanOSPAccessibilityServiceCore.setPullAreaEditing(true);
+        pullAreaPreview.show();
+        if(pullAreaPreviewButton!=null)pullAreaPreviewButton.setText("Hide pull area");
+    }
+    private void hidePullAreaPreview() {
+        if(pullAreaPreview!=null)pullAreaPreview.hide();
+        com.ubai.veilpanel.accessibility.PanOSPAccessibilityServiceCore.setPullAreaEditing(false);
+        if(pullAreaPreviewButton!=null)pullAreaPreviewButton.setText("Show pull area");
+    }
+    @Override protected void onPause(){hidePullAreaPreview();super.onPause();}
 
     @Override
     protected void onResume() {
@@ -437,7 +454,8 @@ public class MainActivity extends androidx.appcompat.app.AppCompatActivity {
 
         windowRoot.setBackgroundColor(com.ubai.veilpanel.ui.SettingsStyle.panelBackground(this));
         scrollView.addView(root);
-        settingsNavigator=new com.ubai.veilpanel.ui.SettingsNavigator(this,toolbar,root,scrollView,search,key->selectedSettingsPage=key);
+        settingsNavigator=new com.ubai.veilpanel.ui.SettingsNavigator(this,toolbar,root,scrollView,search,key->{selectedSettingsPage=key;hidePullAreaPreview();});
+        search.addTextChangedListener(new android.text.TextWatcher(){public void beforeTextChanged(CharSequence s,int start,int count,int after){}public void afterTextChanged(android.text.Editable text){}public void onTextChanged(CharSequence s,int start,int before,int count){hidePullAreaPreview();}});
         settingsNavigator.select(selectedSettingsPage);
 
 
@@ -446,8 +464,6 @@ public class MainActivity extends androidx.appcompat.app.AppCompatActivity {
 
         return windowRoot;
     }
-
-    @Override public void onBackPressed(){if(settingsNavigator!=null&&settingsNavigator.back())return;super.onBackPressed();}
 
     private void showSettingsAppearance(){
         String[] values={"system","light","dark"};String current=getSharedPreferences("panel_settings_ui",0).getString("appearance","system");int checked=java.util.Arrays.asList(values).indexOf(current);
@@ -529,10 +545,17 @@ public class MainActivity extends androidx.appcompat.app.AppCompatActivity {
 
         LinearLayout gestures=section(root,"gestures","Gestures & shortcuts","Pull-down split and launcher actions",false);
         help(gestures,"Pull from the left for notifications and from the right for your original quick settings.");
-        addGlassSlider(gestures,"Left notification area (%)",20,80,"split",50);
+        pullAreaPreviewButton=action(gestures,"Show pull area",()->{if(pullAreaPreview!=null&&pullAreaPreview.isShown())hidePullAreaPreview();else showPullAreaPreview();});
+        pullAreaPreviewButton.setTag("pull_area_preview");
+        addGlassSlider(gestures,"Pull area width (%)",20,80,"split",50);
+        addGlassSlider(gestures,"Pull area height (dp)",8,120,"pull_area_height",com.ubai.veilpanel.ui.PanelPullArea.defaultHeightDp(this));
+        help(gestures,"The marked area at the top shows where a pull opens notifications. Adjust either slider to preview it live. Outside settings, the area stays invisible. The remaining width opens your original quick settings.");
         addPanelSwitch(gestures,"Two swipes in fullscreen apps","fullscreen_two_swipe",true);
         help(gestures,"When both status and navigation bars are hidden, the first pull reveals Android's bars and a fresh second pull opens Veil. Apps that hide only the status bar open Veil with one pull.");
         help(gestures,"In any compatible launcher, choose this app’s Open notifications shortcut. No particular launcher is required.");
+
+        addPanelSwitch(gestures,"Swipe up again at the end to close","swipe_up_at_end",false);
+        help(gestures,"Reach the bottom of the notification list, lift your finger, then swipe up again. A light tick means you can release to close. Pull back before releasing to stay open.");
 
         LinearLayout handle=section(root,"handle","Dismiss handle","Line position, length and grab area",false);
         addGlassSlider(handle,"Line length",24,100,"dismiss_handle_width",48);
@@ -629,7 +652,7 @@ public class MainActivity extends androidx.appcompat.app.AppCompatActivity {
         help(advanced,"The legacy backdrop is used if the wallpaper or display-over-apps access is missing. It can pause the app underneath.");
         action(advanced,"Reset layout sizes",()->new com.ubai.veilpanel.ui.SettingsDialogBuilder(this).setTitle("Reset layout sizes?").setMessage("Reset card, text and icon sizes. Keep your wallpaper, colours and gestures.").setNegativeButton(android.R.string.cancel,null).setPositiveButton("Reset",(d,w)->{com.ubai.veilpanel.config.PanelAppearance.reset(this);recreate();}).show());
         action(advanced,"Remove saved wallpaper",()->new com.ubai.veilpanel.ui.SettingsDialogBuilder(this).setTitle("Remove panel wallpaper?").setMessage("Delete the private saved copy. The panel will use its legacy backdrop until you choose an image again.").setNegativeButton(android.R.string.cancel,null).setPositiveButton("Remove",(d,w)->IMAGE_WORK.execute(()->{com.ubai.veilpanel.image.PowerSaverBackdrop.clear(getApplicationContext());runOnUiThread(()->{if(!isDestroyed()&&!isFinishing())recreate();});})).show());
-        help(advanced,"Veil Panel · 1.0.0\nBased on PanOSP · GPL-3.0-or-later\nNo Internet permission. Wallpaper and notification data stay on your device.");
+        help(advanced,"Veil Panel · "+getString(R.string.app_version)+"\nBased on PanOSP · GPL-3.0-or-later\nNo Internet permission. Wallpaper and notification data stay on your device.");
     }
 
     private void addHeaderChoice(LinearLayout parent,String title,String key,String[] labels,String[] values,String initial){
@@ -663,7 +686,7 @@ public class MainActivity extends androidx.appcompat.app.AppCompatActivity {
         Button reset=new Button(this);reset.setTag("reset:"+key);reset.setText("↺");reset.setTextSize(26);reset.setTextColor(com.ubai.veilpanel.ui.SettingsStyle.secondaryText(this));reset.setContentDescription("Reset "+title+" to "+initial);reset.setMinWidth(0);reset.setMinimumWidth(0);reset.setPadding(0,0,0,0);reset.setBackground(com.ubai.veilpanel.ui.SettingsStyle.touch(this,Color.TRANSPARENT,24));control.addView(reset,new LinearLayout.LayoutParams(dp(48),dp(48)));reset.setOnClickListener(v->slider.setValue(initial));setting.addView(control);root.addView(setting,new LinearLayout.LayoutParams(-1,-2));
         Runnable refresh=()->{int next=Math.round(slider.getValue());value.setText(next+(title.contains("%")?"%":""));value.setContentDescription(title+", "+next+". Tap to enter a value.");reset.setEnabled(next!=initial);reset.setAlpha(next==initial?.35f:1);};refresh.run();
         value.setOnClickListener(v->{android.widget.EditText input=new android.widget.EditText(this);input.setInputType(android.text.InputType.TYPE_CLASS_NUMBER|(min<0?android.text.InputType.TYPE_NUMBER_FLAG_SIGNED:0));input.setText(String.valueOf(Math.round(slider.getValue())));input.selectAll();new com.ubai.veilpanel.ui.SettingsDialogBuilder(this).setTitle(title+" ("+min+"–"+max+")").setView(input).setNegativeButton(android.R.string.cancel,null).setPositiveButton("Apply",(dialog,which)->{try{slider.setValue(Math.max(min,Math.min(max,Integer.parseInt(input.getText().toString().trim()))));}catch(NumberFormatException ignored){}}).show();});
-        slider.addOnChangeListener((bar,next,user)->{getSharedPreferences("veil_panel",0).edit().putInt(key,Math.round(next)).apply();refresh.run();});
+        slider.addOnChangeListener((bar,next,user)->{getSharedPreferences("veil_panel",0).edit().putInt(key,Math.round(next)).apply();refresh.run();if("split".equals(key)||"pull_area_height".equals(key))showPullAreaPreview();});
     }
 
     private void addLanguageControl(LinearLayout root) {

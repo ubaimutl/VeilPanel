@@ -91,6 +91,24 @@ public class SettingsOrganizationTest {
    MainActivity activity=controller.get();android.content.res.TypedArray attrs=activity.obtainStyledAttributes(new int[]{android.R.attr.fontFamily});assertEquals(com.ubai.veilpanel.R.font.roboto,attrs.getResourceId(0,0));attrs.recycle();assertEquals(panelFont,PanelStyle.font(activity));assertEquals(before,prefs.getAll());
   }
  }
+ @Test public void systemBackHidesPreviewAndReturnsToSettingsIndex(){
+  try(var controller=Robolectric.buildActivity(MainActivity.class).setup()){
+   MainActivity activity=controller.get();View root=activity.getWindow().getDecorView();root.findViewWithTag("category:gestures").performClick();root.findViewWithTag("pull_area_preview").performClick();activity.getOnBackPressedDispatcher().onBackPressed();
+   PullAreaPreview preview=org.robolectric.util.ReflectionHelpers.getField(activity,"pullAreaPreview");assertFalse(preview.isShown());assertFalse(activity.isFinishing());assertEquals(View.VISIBLE,root.findViewWithTag("settings_categories").getVisibility());
+  }
+ }
+ @Test public void pullAreaPreviewTracksBothSlidersAndNeverSurvivesNavigationOrPause(){
+  Context context=RuntimeEnvironment.getApplication();var prefs=context.getSharedPreferences("veil_panel",0);prefs.edit().clear().commit();
+  try(var controller=Robolectric.buildActivity(MainActivity.class).setup()){
+   MainActivity activity=controller.get();View root=activity.getWindow().getDecorView();root.measure(View.MeasureSpec.makeMeasureSpec(1080,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(2400,View.MeasureSpec.EXACTLY));root.layout(0,0,1080,2400);
+   root.findViewWithTag("category:gestures").performClick();root.findViewWithTag("pull_area_preview").performClick();
+   PullAreaPreview preview=org.robolectric.util.ReflectionHelpers.getField(activity,"pullAreaPreview");assertTrue(preview.isShown());assertFalse(prefs.contains("pull_area_height"));
+   ((com.google.android.material.slider.Slider)root.findViewWithTag("value:split")).setValue(70);
+   ((com.google.android.material.slider.Slider)root.findViewWithTag("value:pull_area_height")).setValue(64);
+   assertEquals(756,preview.getBounds().width());assertEquals(PanelPullArea.height(activity),preview.getBounds().height());assertTrue(preview.isShown());
+   root.findViewWithTag("settings_back").performClick();assertFalse(preview.isShown());root.findViewWithTag("category:gestures").performClick();root.findViewWithTag("pull_area_preview").performClick();assertTrue(preview.isShown());controller.pause();assertFalse(preview.isShown());
+  }
+ }
  private boolean hasLegacyEditor(View root){
   if(root instanceof PanelConfigurationView)return true;
   if(root instanceof ViewGroup)for(int i=0;i<((ViewGroup)root).getChildCount();i++)if(hasLegacyEditor(((ViewGroup)root).getChildAt(i)))return true;

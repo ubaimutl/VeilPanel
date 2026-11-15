@@ -34,7 +34,9 @@ If an app or video pauses when you open the panel, check that you have chosen a 
 - Tap a notification to open it. Available actions and replies depend on the app that sent it.
 - Drag the bottom handle up, or tap it, to close Veil.
 
-In **Gestures & shortcuts**, change **Left notification area (%)** if you want more or less of the top edge to open Veil.
+In **Gestures & shortcuts**, adjust **Pull area width (%)** and **Pull area height (dp)** to choose where you can pull down to open Veil. A coloured outline updates as you move either slider. **Show pull area** lets you check it again; the outline disappears when you leave settings.
+
+You can also enable **Swipe up again at the end to close**. Scroll to the bottom, lift your finger, then swipe up again. When you feel a light tick, release to close the panel. Pull back before releasing to keep it open. If the cue is silent, check that touch vibration is enabled in Android’s sound and vibration settings.
 
 **Two swipes in fullscreen apps** helps avoid accidental opening when an app hides both system bars. The first pull reveals the bars; a fresh second pull opens Veil. Apps hiding only the status bar use one pull. This can vary with your phone’s navigation setup; see [gesture help](LIMITATIONS.md#gestures-and-system-panels).
 

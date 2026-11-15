@@ -13,6 +13,9 @@ public final class ElasticPanelScrollView extends ScrollView {
  private final android.widget.OverScroller flingPrediction;
  private boolean boundedFling;
  private boolean frameManaged,scrollAdvanced;
+ private Runnable endSwipeDismiss;
+ private boolean dismissEligible,dismissCaptured,dismissReady,dismissHaptic;
+ private float dismissX,dismissY;
  private final android.view.ViewTreeObserver.OnPreDrawListener advanceScroll=this::beginScrollFrame;
  private final Choreographer.FrameCallback spring=this::stepSpring;
  public ElasticPanelScrollView(Context context){super(context);setOverScrollMode(OVER_SCROLL_NEVER);setVerticalScrollBarEnabled(false);setHorizontalScrollBarEnabled(false);
@@ -20,11 +23,53 @@ public final class ElasticPanelScrollView extends ScrollView {
   flingPrediction=new android.widget.OverScroller(context);
  }
  private boolean bounceEnabled(){return getContext().getSharedPreferences("veil_panel",0).getBoolean("experimental_motion",false);}
+ public void setOnEndSwipeDismiss(Runnable dismiss){endSwipeDismiss=dismiss;}
+ private boolean endDismissEnabled(){return endSwipeDismiss!=null&&getContext().getSharedPreferences("veil_panel",0).getBoolean("swipe_up_at_end",false);}
+ @Override public void requestDisallowInterceptTouchEvent(boolean disallow){
+  if(disallow&&!dismissCaptured)dismissEligible=false;
+  super.requestDisallowInterceptTouchEvent(disallow);
+ }
+ private boolean dispatchEndDismiss(MotionEvent event){
+  int action=event.getActionMasked();
+  if(action==MotionEvent.ACTION_DOWN){
+   dismissCaptured=dismissReady=dismissHaptic=false;
+   dismissEligible=endDismissEnabled()&&getChildAt(0)!=null&&!canScrollVertically(1);
+   dismissX=event.getX();dismissY=event.getY();
+   return false;
+  }
+  if(action==MotionEvent.ACTION_POINTER_DOWN||action==MotionEvent.ACTION_CANCEL||!endDismissEnabled()){
+   dismissEligible=dismissReady=false;
+  }
+  if(dismissEligible&&action==MotionEvent.ACTION_MOVE){
+   float up=dismissY-event.getY(),side=Math.abs(event.getX()-dismissX);
+   int slop=android.view.ViewConfiguration.get(getContext()).getScaledTouchSlop();
+   if(!dismissCaptured&&(side>slop&&side>Math.abs(up)||up<-slop||canScrollVertically(1)))dismissEligible=false;
+   else {
+    dismissReady=up>=dp(64)&&up>side;
+    if(dismissReady&&!dismissCaptured){
+     dismissCaptured=true;
+     MotionEvent cancel=MotionEvent.obtain(event);cancel.setAction(MotionEvent.ACTION_CANCEL);
+     super.dispatchTouchEvent(cancel);cancel.recycle();
+     clearEdge();
+    }
+    if(dismissReady&&!dismissHaptic){PanelHaptics.ready(this);dismissHaptic=true;}
+   }
+  }
+  boolean captured=dismissCaptured;
+  if(action==MotionEvent.ACTION_UP||action==MotionEvent.ACTION_CANCEL){
+   boolean close=action==MotionEvent.ACTION_UP&&dismissEligible&&dismissReady
+     &&dismissY-event.getY()>=dp(64)&&dismissY-event.getY()>Math.abs(event.getX()-dismissX);
+   dismissEligible=dismissCaptured=dismissReady=false;
+   if(close)endSwipeDismiss.run();
+  }
+  return captured;
+ }
  private void clearEdge(){cancelSpring();displacement=rawPull=velocity=0;View child=getChildAt(0);if(child!=null)child.setTranslationY(0);}
  private float dp(float value){return value*getResources().getDisplayMetrics().density;}
  public static float resist(float value,float limit){return (float)Math.copySign(limit*(1-Math.exp(-Math.abs(value)/limit)),value);}
  private void cancelSpring(){Choreographer.getInstance().removeFrameCallback(spring);releasing=false;previousFrame=0;}
  @Override public boolean dispatchTouchEvent(MotionEvent event){
+  if(dispatchEndDismiss(event))return true;
   if(event.getActionMasked()==MotionEvent.ACTION_DOWN){stopBoundedFling();cancelSpring();flingEdgeHandled=false;velocity=0;lastPullAt=0;View child=getChildAt(0);if(child!=null){displacement=child.getTranslationY();float limit=dp(48);rawPull=(float)Math.copySign(-limit*Math.log(Math.max(.001,1-Math.abs(displacement)/limit)),displacement);}}
   boolean handled=super.dispatchTouchEvent(event);
   if(event.getActionMasked()==MotionEvent.ACTION_UP||event.getActionMasked()==MotionEvent.ACTION_CANCEL)releaseEdge(android.os.SystemClock.uptimeMillis()-lastPullAt>80?0:velocity);
@@ -112,5 +157,5 @@ public final class ElasticPanelScrollView extends ScrollView {
   if(Math.abs(displacement)<.15f&&Math.abs(velocity)<2f){displacement=0;velocity=0;child.setTranslationY(0);releasing=false;previousFrame=0;}
   else Choreographer.getInstance().postFrameCallback(spring);
  }
- @Override protected void onDetachedFromWindow(){if(getViewTreeObserver().isAlive())getViewTreeObserver().removeOnPreDrawListener(advanceScroll);frameManaged=scrollAdvanced=false;stopBoundedFling();cancelSpring();View child=getChildAt(0);if(child!=null)child.setTranslationY(0);displacement=rawPull=velocity=0;super.onDetachedFromWindow();}
+ @Override protected void onDetachedFromWindow(){dismissEligible=dismissCaptured=dismissReady=false;if(getViewTreeObserver().isAlive())getViewTreeObserver().removeOnPreDrawListener(advanceScroll);frameManaged=scrollAdvanced=false;stopBoundedFling();cancelSpring();View child=getChildAt(0);if(child!=null)child.setTranslationY(0);displacement=rawPull=velocity=0;super.onDetachedFromWindow();}
 }

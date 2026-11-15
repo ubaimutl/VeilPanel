@@ -14,6 +14,11 @@ public class PanOSPAccessibilityServiceCore extends AccessibilityService {
     private SystemShadeController system;
     private boolean registered;
     private static volatile java.lang.ref.WeakReference<PanOSPAccessibilityServiceCore> active=new java.lang.ref.WeakReference<>(null);
+    /** Settings-only preview; the actual catcher must not cover the editor’s back button. */
+    public static void setPullAreaEditing(boolean editing) {
+        PanOSPAccessibilityServiceCore service=active.get();
+        if(service!=null&&service.panel!=null)service.panel.setPullAreaEditing(editing);
+    }
     public static boolean requestPanelOpen() {
         PanOSPAccessibilityServiceCore service=active.get();
         if(service==null||service.panel==null)return false;

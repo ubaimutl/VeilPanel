@@ -66,5 +66,21 @@ public class CurtainInteractionTest {
  @Test public void releaseDecisionUsesDistanceSpeedAndDirection(){
   assertFalse(CurtainMotion.shouldClose(.94f,-100,1000,1));assertTrue(CurtainMotion.shouldClose(.94f,-1000,1000,1));assertTrue(CurtainMotion.shouldClose(.7f,0,1000,1));assertFalse(CurtainMotion.shouldClose(.7f,1000,1000,1));assertFalse(CurtainMotion.shouldClose(.995f,-2000,1000,1));
  }
+ @Test public void collapsedPullWindowsHaveNoFocusHighlightOrLeftoverContent(){
+  panel.collapse();FrameLayout root=(FrameLayout)root();View guard=ReflectionHelpers.getField(panel,"topGuard");
+  assertFalse("root highlight",root.getDefaultFocusHighlightEnabled());assertFalse("guard highlight",guard.getDefaultFocusHighlightEnabled());assertFalse("root focus",root.hasFocus());assertFalse("touch focus",root.isFocusableInTouchMode());assertEquals(0,root.getChildCount());
+  assertEquals(android.graphics.Color.TRANSPARENT,((android.graphics.drawable.ColorDrawable)root.getBackground()).getColor());
+ }
+ @Test public void livePreviewDoesNotLetTheClosedCatcherBlockSettingsControls(){
+  panel.collapse();panel.setPullAreaEditing(true);WindowManager.LayoutParams window=ReflectionHelpers.getField(panel,"params"),guard=ReflectionHelpers.getField(panel,"topGuardParams");
+  assertTrue((window.flags&WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)!=0);assertTrue((guard.flags&WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)!=0);
+  panel.setPullAreaEditing(false);assertEquals(0,window.flags&WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);assertEquals(0,guard.flags&WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
+ }
+ @Test public void pullDimensionsApplyImmediatelyToBothClosedCatchersAndKeepExpandedHeight(){
+  panel.collapse();service.getSharedPreferences("veil_panel",0).edit().putInt("pull_area_height",60).putInt("split",70).commit();idle(1);
+  WindowManager.LayoutParams window=ReflectionHelpers.getField(panel,"params"),guard=ReflectionHelpers.getField(panel,"topGuardParams");
+  assertEquals(PanelPullArea.height(service),window.height);assertEquals(window.height,guard.height);assertEquals(PanelPullArea.width(service,service.getResources().getDisplayMetrics().widthPixels),window.width);assertEquals(window.width,guard.width);
+  panel.openFromShortcut();assertEquals(-1,window.width);assertTrue(window.height>guard.height);
+ }
  @Test public void disablingCurtainKeepsThePreviousAnimationPathAvailable(){panel.collapse();service.getSharedPreferences("veil_panel",0).edit().putBoolean("curtain_motion",false).commit();ReflectionHelpers.callInstanceMethod(panel,"open");assertNull(ReflectionHelpers.getField(panel,"curtain"));assertEquals(0,root().getTranslationY(),0);assertTrue(panel.isExpanded());}
 }

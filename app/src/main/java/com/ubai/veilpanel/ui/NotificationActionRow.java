@@ -12,6 +12,8 @@ public final class NotificationActionRow extends ViewGroup {
  private final List<Rect> positions=new ArrayList<>();
  public NotificationActionRow(Context context){super(context);setClipChildren(false);}
  private int dp(int value){return Math.round(value*getResources().getDisplayMetrics().density);}
+ // These views live in a service overlay, outside the AppCompat settings theme.
+ @android.annotation.SuppressLint("AppCompatCustomView")
  public TextView addAction(CharSequence label,String description,boolean secondary,Runnable action){
   TextView button=new TextView(getContext()){@Override public CharSequence getAccessibilityClassName(){return android.widget.Button.class.getName();}};
   button.setText(label);button.setContentDescription(description);button.setTextSize(14);button.setGravity(Gravity.CENTER);button.setIncludeFontPadding(false);button.setMinWidth(dp(48));button.setMinimumHeight(dp(44));button.setMaxWidth(dp(160));button.setMaxLines(2);button.setEllipsize(android.text.TextUtils.TruncateAt.END);button.setPadding(dp(8),dp(6),dp(8),dp(6));button.setTextColor(secondary?PanOSPTheme.notificationSecondaryText(getContext()):PanOSPTheme.accent(getContext()));button.setBackgroundColor(android.graphics.Color.TRANSPARENT);button.setClickable(true);button.setFocusable(true);button.setOnClickListener(v->action.run());addView(button,new LayoutParams(-2,-2));return button;

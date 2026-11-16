@@ -275,7 +275,7 @@ public final class ShadeWindowController {
   ElasticPanelScrollView list=new ElasticPanelScrollView(service);list.setOnEndSwipeDismiss(this::animateClose);scroll=list;scroll.setFillViewport(true);scroll.setVerticalScrollBarEnabled(false);scroll.setHorizontalScrollBarEnabled(false);scroll.setOverScrollMode(View.OVER_SCROLL_NEVER);scroll.setClipToPadding(false);
   content=new ShadeView(service,this::animateClose);scroll.addView(content,new ScrollView.LayoutParams(-1,-2));
   viewport=new PanelContentViewport(service);viewport.setClipChildren(true);viewport.addView(scroll,new FrameLayout.LayoutParams(-1,-1));
-  boolean beneathStatus=PanelSystemBars.visible(service)&&backdrop!=null&&service.getSharedPreferences("veil_panel",0).getBoolean("scroll_under_status_bar",true);
+  boolean beneathStatus=PanelSystemBars.visible(service)&&backdrop!=null&&PanelSystemBars.transparent(service);
   FrameLayout.LayoutParams placement=new FrameLayout.LayoutParams(-1,-1);
   placement.topMargin=PanelSystemBars.visible(service)&&!beneathStatus?statusHeight:0;
   placement.bottomMargin=0;root.addView(viewport,placement);addTopGuard();

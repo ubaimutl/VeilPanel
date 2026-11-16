@@ -643,9 +643,7 @@ public final class ShadeView extends LinearLayout {
     private LinearLayout buildNotificationView(NotificationEntry entry,int count,Runnable openGroup) {
         NotificationCard card=new NotificationCard(getContext());card.setTransitionName("notification:"+entry.getKey());card.setOrientation(HORIZONTAL);card.setGravity(Gravity.TOP);
         int pad=dp(appearance("card_padding"));card.setPadding(pad,pad,pad,pad);card.setMinimumHeight(dp(appearance("card_height")));
-        android.graphics.drawable.GradientDrawable bg=new android.graphics.drawable.GradientDrawable();int colour=PanOSPTheme.notificationBackground(getContext());
-        bg.setColor((colour&0xffffff)|(Math.round(GlassContrast.safeOpacity(getContext(),getContext().getSharedPreferences("veil_panel",0).getInt("glass_opacity",66))*2.55f)<<24));bg.setCornerRadius(dp(appearance("card_radius")));bg.setStroke(dp(1),0x20FFFFFF);card.setBackground(ExperimentalGlass.enabled(getContext())?ExperimentalGlass.surface(getContext(),dp(appearance("card_radius")),getContext().getSharedPreferences("veil_panel",0).getInt("glass_opacity",66),false):bg);
-        if(getContext().getSharedPreferences("veil_panel",0).getBoolean("reference_glass",false))card.setBackground(new ReferenceGlassDrawable(getContext(),dp(appearance("card_radius")),getContext().getSharedPreferences("veil_panel",0).getInt("glass_opacity",66)));
+        card.setBackground(NotificationCardSurface.create(getContext()));
         if(LiquidGlassOptions.enabled(getContext())){card.setBackground(new LiquidGlassDrawable(getContext(),card,liquidBackdrop,dp(appearance("card_radius"))));liquidBackdrop.watch(card);}
         LinearLayout.LayoutParams cp=new LinearLayout.LayoutParams(cardWidth(),-2);cp.gravity=Gravity.CENTER_HORIZONTAL;cp.bottomMargin=dp(appearance("card_gap"));card.setLayoutParams(cp);
         android.widget.ImageView icon=new android.widget.ImageView(getContext());icon.setImageDrawable(entry.icon(getContext()));icon.setScaleType(android.widget.ImageView.ScaleType.FIT_CENTER);
@@ -706,7 +704,7 @@ public final class ShadeView extends LinearLayout {
     private TextView notificationText(CharSequence value,int size,int maxLines){TextView text=new TextView(getContext());text.setText(value);text.setIncludeFontPadding(false);text.setTextSize(size);text.setTextColor(PanOSPTheme.notificationDescriptionText(getContext()));text.setMaxLines(maxLines);text.setEllipsize(android.text.TextUtils.TruncateAt.END);text.setPadding(0,dp(5),0,0);return text;}
     private void executeNotificationAction(NotificationEntry entry,Notification.Action action) {
         if(NotificationActionExecutor.supportsReply(action)) {
-            Intent reply=new Intent(getContext(),com.ubai.veilpanel.ReplyActivity.class).putExtra("action",action).putExtra("app",entry.getApplicationLabel()).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            Intent reply=new Intent(getContext(),com.ubai.veilpanel.ReplyActivity.class).putExtra("action",action).putExtra("app",entry.getApplicationLabel()).putExtra("package",entry.getPackageName()).putExtra("conversation",entry.getTitle()).putExtra("message",entry.getMessageText(2)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             try{getContext().startActivity(reply);requestClose.run();}catch(RuntimeException unavailable){Toast.makeText(getContext(),R.string.veil_reply_failed,Toast.LENGTH_SHORT).show();}return;
         }
         NotificationActionExecutor.Result result=actionExecutor.execute(action);

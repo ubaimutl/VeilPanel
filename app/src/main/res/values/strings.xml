@@ -109,6 +109,7 @@ Only Accessibility and Notification access are needed. No root or Shizuku is req
     <string name="veil_clear_all" translatable="false">Clear all</string>
     <string name="veil_close" translatable="false">Close panel</string>
     <string name="veil_send" translatable="false">Send</string>
+    <string name="veil_reply_title" translatable="false">Reply</string>
     <string name="veil_reply_hint" translatable="false">Write a reply</string>
     <string name="veil_reply_failed" translatable="false">Could not send. The notification may have expired.</string>
 </resources>

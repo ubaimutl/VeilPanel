@@ -61,10 +61,10 @@ public class SettingsOrganizationTest {
   Context context=RuntimeEnvironment.getApplication();var panel=context.getSharedPreferences("veil_panel",0);panel.edit().clear().putInt("blur",37).commit();var before=panel.getAll();
   context.getSharedPreferences("panel_settings_ui",0).edit().putString("appearance","light").commit();assertFalse(SettingsStyle.isDark(context));int light=SettingsStyle.panelBackground(context);
   try(var controller=Robolectric.buildActivity(MainActivity.class).setup()){
-   View root=controller.get().getWindow().getDecorView();root.findViewWithTag("category:header").performClick();root.findViewWithTag("settings_appearance").performClick();
+   View root=controller.get().getWindow().getDecorView();root.findViewWithTag("category:appappearance").performClick();root.findViewWithTag("settings_appearance").performClick();
    androidx.appcompat.app.AlertDialog dialog=(androidx.appcompat.app.AlertDialog)org.robolectric.shadows.ShadowDialog.getLatestDialog();assertEquals(1,dialog.getListView().getCheckedItemPosition());dialog.getListView().performItemClick(null,2,2);
    assertTrue(SettingsStyle.isDark(context));assertNotEquals(light,SettingsStyle.panelBackground(context));
-   android.os.Bundle state=new android.os.Bundle();controller.saveInstanceState(state);assertEquals("header",state.getString("settings_page"));assertEquals(before,panel.getAll());
+   android.os.Bundle state=new android.os.Bundle();controller.saveInstanceState(state);assertEquals("appappearance",state.getString("settings_page"));assertEquals(before,panel.getAll());
   }finally{context.getSharedPreferences("panel_settings_ui",0).edit().remove("appearance").commit();}
  }
  @Test public void materialSlidersSupportNegativeValuesAndResetOnlyTheirOwnSetting(){
@@ -78,11 +78,36 @@ public class SettingsOrganizationTest {
    View root=controller.get().getWindow().getDecorView();LinearLayout row=root.findViewWithTag("row:kyant_liquid_glass");LinearLayout labels=(LinearLayout)row.getChildAt(0);assertTrue(labels.getChildCount()>1);assertEquals(ViewGroup.LayoutParams.MATCH_PARENT,labels.getChildAt(0).getLayoutParams().width);assertEquals(0,((LinearLayout.LayoutParams)labels.getChildAt(0).getLayoutParams()).weight,0);
   }
  }
- @Test public void headerAppearanceTextFitsAndScrollingContentStartsBelowTheToolbar(){
+ @Test public void compactHomeHeaderHasNoBackOrAppearanceButtonAndKeepsContentBelowIt(){
   try(var controller=Robolectric.buildActivity(MainActivity.class).setup()){
    View root=controller.get().getWindow().getDecorView();root.measure(View.MeasureSpec.makeMeasureSpec(1080,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(2400,View.MeasureSpec.EXACTLY));root.layout(0,0,1080,2400);
-   Button mode=root.findViewWithTag("settings_appearance");assertNotNull(mode.getLayout());assertTrue(mode.getHeight()-mode.getPaddingTop()-mode.getPaddingBottom()>=mode.getLayout().getHeight());
-   View toolbar=root.findViewWithTag("settings_toolbar"),scroll=root.findViewWithTag("settings_scroll");assertTrue(scroll.getTop()>=toolbar.getBottom());
+   TextView title=root.findViewWithTag("settings_home_title");assertEquals("Veil Panel",title.getText().toString());assertNull(root.findViewWithTag("settings_home_subtitle"));assertEquals(View.GONE,root.findViewWithTag("settings_back").getVisibility());
+   View toolbar=root.findViewWithTag("settings_toolbar"),scroll=root.findViewWithTag("settings_scroll");assertNull(toolbar.findViewWithTag("settings_appearance"));assertTrue(scroll.getTop()>=toolbar.getBottom());assertTrue(toolbar.getHeight()<=140*root.getResources().getDisplayMetrics().density);
+   root.findViewWithTag("category:statusbar").performClick();assertEquals(View.VISIBLE,root.findViewWithTag("settings_back").getVisibility());root.findViewWithTag("settings_back").performClick();assertEquals(View.GONE,root.findViewWithTag("settings_back").getVisibility());
+  }
+ }
+ @Test public void appearanceDefaultsToFollowSystemAndLivesInItsOwnPage(){
+  RuntimeEnvironment.getApplication().getSharedPreferences("panel_settings_ui",0).edit().clear().commit();
+  try(var controller=Robolectric.buildActivity(MainActivity.class).setup()){
+   View root=controller.get().getWindow().getDecorView();root.findViewWithTag("category:appappearance").performClick();Button mode=root.findViewWithTag("settings_appearance");assertEquals("Appearance: Follow system",mode.getText().toString());mode.performClick();
+   androidx.appcompat.app.AlertDialog dialog=(androidx.appcompat.app.AlertDialog)org.robolectric.shadows.ShadowDialog.getLatestDialog();assertEquals(0,dialog.getListView().getCheckedItemPosition());
+  }
+ }
+ @Test public void statusBarControlsPreserveLegacyWallpaperChoiceAndSupportDarkIcons(){
+  Context context=RuntimeEnvironment.getApplication();var prefs=context.getSharedPreferences("veil_panel",0);prefs.edit().clear().putBoolean("scroll_under_status_bar",false).putBoolean("show_status_bar",true).commit();var before=prefs.getAll();
+  try(var controller=Robolectric.buildActivity(MainActivity.class).setup()){
+   View root=controller.get().getWindow().getDecorView();root.findViewWithTag("category:statusbar").performClick();assertEquals(before,prefs.getAll());
+   android.widget.CompoundButton transparent=root.findViewWithTag("setting:scroll_under_status_bar");assertFalse(transparent.isChecked());assertFalse(PanelSystemBars.transparent(context));assertTrue(PanelSystemBars.visible(context));
+   root.findViewWithTag("choice:status_bar_icons").performClick();androidx.appcompat.app.AlertDialog dialog=(androidx.appcompat.app.AlertDialog)org.robolectric.shadows.ShadowDialog.getLatestDialog();dialog.getListView().performItemClick(null,1,1);
+   assertEquals(WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS,PanelSystemBars.iconAppearance(context));assertFalse(PanelSystemBars.transparent(context));transparent.setChecked(true);assertTrue(PanelSystemBars.transparent(context));
+  }
+ }
+ @Test public void replyOptionsAreReachableWithoutChangingThePanelCardStyle(){
+  Context context=RuntimeEnvironment.getApplication();var prefs=context.getSharedPreferences("veil_panel",0);prefs.edit().clear().putInt("card_radius",13).commit();
+  try(var controller=Robolectric.buildActivity(MainActivity.class).setup()){
+   View root=controller.get().getWindow().getDecorView();root.findViewWithTag("category:replies").performClick();assertEquals(View.VISIBLE,root.findViewWithTag("section:replies").getVisibility());
+   root.findViewWithTag("choice:reply_send_style").performClick();androidx.appcompat.app.AlertDialog dialog=(androidx.appcompat.app.AlertDialog)org.robolectric.shadows.ShadowDialog.getLatestDialog();dialog.getListView().performItemClick(null,1,1);
+   assertEquals("filled",prefs.getString("reply_send_style",""));assertEquals(13,prefs.getInt("card_radius",0));assertNotNull(root.findViewWithTag("setting:reply_show_preview"));assertNotNull(root.findViewWithTag("value:reply_spacing"));
   }
  }
  @Test public void dedicatedSettingsFontDoesNotReplaceTheSelectedPanelFont(){

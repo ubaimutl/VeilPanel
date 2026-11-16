@@ -5,6 +5,8 @@ public final class SettingDescriptions {
  private SettingDescriptions(){}
  public static String forKey(String key){
   switch(key){
+   case "reply_text_size":return "Size of the text you type in the reply composer.";
+   case "reply_spacing":return "Padding inside the reply sheet. Lower values make it more compact.";
    case "pull_area_height":return "Height of the pull area from the top edge. Larger values are easier to reach but cover more of the app underneath.";
    case "split":return "The left side opens Veil. The remaining area opens Android quick settings.";
    case "blur":return "Soften your saved wallpaper. Zero keeps the image sharp.";

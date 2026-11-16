@@ -50,18 +50,22 @@ Then explore the settings:
 
 | Setting | What you can change |
 | --- | --- |
-| Wallpaper & glass | Background image, blur, card opacity and status-bar appearance. |
+| Wallpaper & glass | Background image, blur and card opacity. |
+| Status bar | Show or hide the icons, choose their colour, and use transparent content or a wallpaper background. |
 | Clock & header | Clock and date sizes, alignment and style. |
 | Notifications | How much notification text appears before and after expansion. |
 | Typography & icons | Panel fonts, text sizes and notification icons. |
 | Spacing & layout | Card width, height, gaps and margins. |
 | Liquid Glass | Glass highlights and other glass effects. |
 | Dismiss handle | Handle position and the size of the area you can grab. |
+| Replies & actions | Text or filled Send buttons, Cancel visibility, the app icon, message previews, text size and spacing. |
 | Motion | Scrolling bounce and help with gestures that open Android’s panel. |
 
 Use **Search settings** to find a setting by name. Tap a slider’s number to enter an exact value, or use its reset arrow to return to the default. Reopen the panel to see appearance changes.
 
-**Appearance** at the top of settings lets you choose a light or dark settings screen, or follow your phone’s theme. It does not change the notification panel’s look.
+Open **Settings appearance** to follow your phone’s theme or choose Light or Dark. Follow system is the default. This affects settings screens only.
+
+Under **Status bar**, turn off **Transparent status bar** to keep your saved panel wallpaper behind the icons instead of scrolling notifications. **Status icon colour** lets you choose light or dark icons, or match the panel’s text colour.
 
 You can import a TTF or OTF font, up to 20 MB, for the panel. Keep the original file in case you need it again.
 

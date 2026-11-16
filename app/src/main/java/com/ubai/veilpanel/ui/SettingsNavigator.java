@@ -20,14 +20,12 @@ public final class SettingsNavigator {
  public SettingsNavigator(Context context,LinearLayout toolbar,LinearLayout content,ScrollView scroll,EditText search,Consumer<String> onSelection){
   this.context=context;this.scroll=scroll;this.search=search;this.onSelection=onSelection;
   home=new LinearLayout(context);home.setTag("settings_categories");home.setOrientation(LinearLayout.VERTICAL);
-  TextView title=label("Settings",34,SettingsStyle.primaryText(context));title.setPadding(dp(4),dp(20),0,dp(8));title.setTag("settings_home_title");title.setAccessibilityHeading(true);toolbar.addView(title,1);
-  TextView subtitle=label("Veil Panel",16,SettingsStyle.secondaryText(context));subtitle.setTag("settings_home_subtitle");subtitle.setPadding(dp(4),0,0,dp(20));toolbar.addView(subtitle,2);
-  String[] keys={"access","themes","wallpaper","header","notifications","typography","layout","liquid","gestures","handle","motion","advanced"};
-  String[] labels={"Setup & access","Presets","Wallpaper & glass","Clock & header","Notifications","Typography & icons","Spacing & layout","Liquid Glass","Gestures & shortcuts","Dismiss handle","Motion","About & backup"};
+  String[] keys={"access","themes","wallpaper","statusbar","header","notifications","typography","layout","liquid","gestures","handle","replies","motion","appappearance","advanced"};
+  String[] labels={"Setup & access","Presets","Wallpaper & glass","Status bar","Clock & header","Notifications","Typography & icons","Spacing & layout","Liquid Glass","Gestures & shortcuts","Dismiss handle","Replies & actions","Motion","Settings appearance","About & backup"};
   for(int i=0;i<keys.length;i++){
    String key=keys[i];View page=content.findViewWithTag("themes".equals(key)?"theme_presets":"section:"+key);if(page==null)continue;pages.put(key,page);
    if(page instanceof SettingsSection)((SettingsSection)page).setNavigationPage();
-   if(i==2||i==8||i==11){TextView group=label(i==2?"Appearance":i==8?"Interaction":"App",14,SettingsStyle.accent(context));group.setPadding(dp(8),dp(28),0,dp(8));group.setAccessibilityHeading(true);home.addView(group);}
+   if("wallpaper".equals(key)||"gestures".equals(key)||"appappearance".equals(key)){TextView group=label("wallpaper".equals(key)?"Appearance":"gestures".equals(key)?"Interaction":"App",14,SettingsStyle.accent(context));group.setPadding(dp(8),dp(28),0,dp(8));group.setAccessibilityHeading(true);home.addView(group);}
    LinearLayout row=new LinearLayout(context);row.setTag("category:"+key);row.setGravity(Gravity.CENTER_VERTICAL);row.setPadding(dp(20),dp(20),dp(20),dp(20));row.setMinimumHeight(dp(80));row.setClickable(true);row.setFocusable(true);
    LinearLayout text=new LinearLayout(context);text.setOrientation(LinearLayout.VERTICAL);text.addView(label(labels[i],16,SettingsStyle.primaryText(context)));
    String summary=page instanceof SettingsSection?((SettingsSection)page).summary():"Choose a look, then adjust it to suit you";
@@ -46,7 +44,7 @@ public final class SettingsNavigator {
  }
  private void hideKeyboard(){((android.view.inputmethod.InputMethodManager)context.getSystemService(Context.INPUT_METHOD_SERVICE)).hideSoftInputFromWindow(search.getWindowToken(),0);search.clearFocus();home.setFocusableInTouchMode(true);home.requestFocus();}
  private void filter(String query){
-  boolean atHome="home".equals(selected);View toolbar=(View)search.getParent();toolbar.findViewWithTag("settings_home_title").setVisibility(atHome?View.VISIBLE:View.GONE);toolbar.findViewWithTag("settings_home_subtitle").setVisibility(atHome?View.VISIBLE:View.GONE);home.setVisibility(atHome&&query.isEmpty()?View.VISIBLE:View.GONE);search.setVisibility(atHome?View.VISIBLE:View.GONE);int found=0;
+  boolean atHome="home".equals(selected);View toolbar=(View)search.getParent();toolbar.findViewWithTag("settings_back").setVisibility(atHome?View.GONE:View.VISIBLE);home.setVisibility(atHome&&query.isEmpty()?View.VISIBLE:View.GONE);search.setVisibility(atHome?View.VISIBLE:View.GONE);int found=0;
   for(Map.Entry<String,View> entry:pages.entrySet()){
    boolean visible=query.isEmpty()?entry.getKey().equals(selected):matches(entry.getValue(),query);entry.getValue().setVisibility(visible?View.VISIBLE:View.GONE);if(visible)found++;
    View row=home.findViewWithTag("category:"+entry.getKey());row.setSelected(entry.getKey().equals(selected));

@@ -21,7 +21,7 @@ Under **Motion**, **Recover native shade after lost gestures** helps when Androi
 
 ## Content near the status bar
 
-**Wallpaper & glass → Scroll beneath status icons** lets notifications pass behind the status icons. If moving content looks split at that boundary, turn it off. The icons will sit over a strip of the panel background, and notifications will stop below them.
+**Status bar → Transparent status bar** lets notifications pass behind the status icons. If moving content looks split at that boundary, turn it off. The icons will sit over a strip of the panel background, and notifications will stop below them.
 
 System popup banners and screenshot controls can appear behind Veil. A part of a banner may still be visible in the transparent status-bar area. Veil does not currently guarantee that these popups appear above the panel or are completely covered.
 

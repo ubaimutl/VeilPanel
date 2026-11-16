@@ -446,8 +446,8 @@ public class MainActivity extends androidx.appcompat.app.AppCompatActivity {
         LinearLayout toolbar=new LinearLayout(this);toolbar.setTag("settings_toolbar");toolbar.setBackgroundColor(com.ubai.veilpanel.ui.SettingsStyle.panelBackground(this));toolbar.setOrientation(LinearLayout.VERTICAL);toolbar.setPadding(dp(16),dp(8),dp(16),dp(8));
         LinearLayout headingRow=new LinearLayout(this);headingRow.setGravity(Gravity.CENTER_VERTICAL);
         Button back=new Button(this);back.setTag("settings_back");back.setText("←");back.setTextSize(28);back.setAllCaps(false);back.setTextColor(com.ubai.veilpanel.ui.SettingsStyle.primaryText(this));back.setContentDescription("Back to settings");back.setPadding(0,0,0,0);back.setIncludeFontPadding(false);back.setGravity(Gravity.CENTER);back.setStateListAnimator(null);back.setElevation(0);back.setMinWidth(0);back.setMinimumWidth(0);back.setBackground(com.ubai.veilpanel.ui.SettingsStyle.touch(this,com.ubai.veilpanel.ui.PanOSPTheme.blend(com.ubai.veilpanel.ui.SettingsStyle.panelBackground(this),com.ubai.veilpanel.ui.SettingsStyle.primaryText(this),.06f),28));headingRow.addView(back,new LinearLayout.LayoutParams(dp(48),dp(48)));back.setOnClickListener(v->{if(settingsNavigator!=null&&!settingsNavigator.back())finish();});
-        View spacer=new View(this);headingRow.addView(spacer,new LinearLayout.LayoutParams(0,1,1));
-        Button mode=new Button(this);mode.setTag("settings_appearance");mode.setAllCaps(false);mode.setTextSize(16);mode.setTextColor(com.ubai.veilpanel.ui.SettingsStyle.primaryText(this));mode.setPadding(dp(16),dp(8),dp(16),dp(8));mode.setMinHeight(dp(48));mode.setMinimumHeight(dp(48));mode.setMinWidth(0);mode.setMinimumWidth(0);mode.setIncludeFontPadding(false);mode.setSingleLine(true);mode.setGravity(Gravity.CENTER);mode.setStateListAnimator(null);mode.setElevation(0);mode.setText("Appearance");mode.setContentDescription("Settings appearance");mode.setBackground(com.ubai.veilpanel.ui.SettingsStyle.touch(this,Color.TRANSPARENT,24));mode.setOnClickListener(v->showSettingsAppearance());headingRow.addView(mode,new LinearLayout.LayoutParams(-2,-2));toolbar.addView(headingRow);
+        TextView homeTitle=new TextView(this);homeTitle.setTag("settings_home_title");homeTitle.setText("Veil Panel");homeTitle.setTextSize(24);homeTitle.setMinHeight(dp(56));homeTitle.setPadding(0,dp(8),0,dp(8));homeTitle.setTextColor(com.ubai.veilpanel.ui.SettingsStyle.primaryText(this));homeTitle.setAccessibilityHeading(true);homeTitle.setGravity(Gravity.CENTER_VERTICAL);
+        LinearLayout.LayoutParams titlePlacement=new LinearLayout.LayoutParams(0,-2,1);titlePlacement.setMarginStart(dp(4));headingRow.addView(homeTitle,titlePlacement);toolbar.addView(headingRow);
         android.widget.EditText search=new android.widget.EditText(this);search.setTag("settings_search");search.setSingleLine(true);search.setTextSize(16);search.setHint("Search settings");search.setContentDescription("Search settings");search.setTextColor(com.ubai.veilpanel.ui.SettingsStyle.primaryText(this));search.setHintTextColor(com.ubai.veilpanel.ui.SettingsStyle.secondaryText(this));search.setPadding(dp(16),0,dp(16),0);search.setBackground(com.ubai.veilpanel.ui.SettingsStyle.rounded(this,com.ubai.veilpanel.ui.PanOSPTheme.blend(com.ubai.veilpanel.ui.SettingsStyle.panelBackground(this),com.ubai.veilpanel.ui.SettingsStyle.primaryText(this),.08f),16));search.setInputType(android.text.InputType.TYPE_CLASS_TEXT);search.setImeOptions(android.view.inputmethod.EditorInfo.IME_ACTION_SEARCH);toolbar.addView(search,new LinearLayout.LayoutParams(-1,dp(52)));windowRoot.addView(toolbar,1);
 
         addSetupContent(root);
@@ -575,9 +575,13 @@ public class MainActivity extends androidx.appcompat.app.AppCompatActivity {
         addPanelSwitch(wallpaper,"Experimental glass material","experimental_glass",false);
         addPanelSwitch(wallpaper,"Borders around controls","control_borders",false);
         addGlassSlider(wallpaper,"Control border size",24,36,"control_surface_size",28);
-        addPanelSwitch(wallpaper,"Show status bar","show_status_bar",true);
-        addPanelSwitch(wallpaper,"Scroll beneath status icons","scroll_under_status_bar",true);
-        help(wallpaper,"Let scrolling content pass behind the status icons. Turn off to keep a wallpaper strip above the content.");
+        LinearLayout status=section(root,"statusbar","Status bar","Visibility, wallpaper background and icon colour",false);
+        addPanelSwitch(status,"Show status bar","show_status_bar",true);
+        help(status,"Show Android’s real time, battery and connection icons while the panel is open. Turn off to hide them in Veil.");
+        addPanelSwitch(status,"Transparent status bar","scroll_under_status_bar",true);
+        help(status,"On lets notification content move behind the icons. Turn off to keep the saved panel wallpaper behind them instead. Without a saved wallpaper, the panel background is used.");
+        addHeaderChoice(status,"Status icon colour","status_bar_icons",new String[]{"Light","Dark","Match panel text"},new String[]{"light","dark","panel"},"light");
+        help(status,"Choose light icons for dark backgrounds or dark icons for light backgrounds. Match panel text follows the text colour of your panel theme. These choices affect only Veil’s open panel.");
 
         LinearLayout liquid=section(root,"liquid","Liquid Glass experiment","Kyant lens, wallpaper refraction and edge light",false);
         addPanelSwitch(liquid,"Use Kyant lens cards","kyant_liquid_glass",false);
@@ -635,6 +639,17 @@ public class MainActivity extends androidx.appcompat.app.AppCompatActivity {
         LinearLayout layout=section(root,"layout","Spacing & layout","Card dimensions, margins and alignment",false);
         for(String key:new String[]{"card_width","card_height","card_padding","card_gap","card_radius","side_margin","icon_gap","header_gap"})addOption(layout,key);
 
+        LinearLayout replies=section(root,"replies","Replies & actions","Reply buttons, previews and spacing",false);
+        help(replies,"Replies use the notification card’s corner radius, border and font. Change those under Spacing & layout and Typography & icons.");
+        addHeaderChoice(replies,"Send button style","reply_send_style",new String[]{"Text","Filled"},new String[]{"text","filled"},"text");
+        addPanelSwitch(replies,"Show Cancel button","reply_show_cancel",true);
+        help(replies,"You can always close a reply with Android’s Back gesture or button. Outside taps do not discard your draft.");
+        addPanelSwitch(replies,"Show app icon","reply_show_app_icon",false);
+        addPanelSwitch(replies,"Show message preview","reply_show_preview",true);
+        addGlassSlider(replies,"Reply text size",12,22,"reply_text_size",16);
+        addGlassSlider(replies,"Reply spacing",8,24,"reply_spacing",12);
+        help(replies,"Changes apply the next time you open a reply. Other actions keep the behaviour provided by the sending app.");
+
         LinearLayout motion=section(root,"motion","Motion","Curtain gestures and list springs",false);
         addPanelSwitch(motion,"Curtain opening and drag dismissal","curtain_motion",true);
         addPanelSwitch(motion,"Recover native shade after lost gestures","native_edge_recovery",true);
@@ -645,7 +660,20 @@ public class MainActivity extends androidx.appcompat.app.AppCompatActivity {
         help(motion,"Off keeps the list stationary when it reaches either end. Enable for an optional elastic pull and spring return.");
         addGlassSlider(motion,"List spring damping (%)",70,110,"motion_damping",90);
 
+        LinearLayout appAppearance=section(root,"appappearance","Settings appearance","Follow system, light or dark",false);
+        String settingsMode=getSharedPreferences("panel_settings_ui",0).getString("appearance","system");
+        Button mode=action(appAppearance,"Appearance: "+("light".equals(settingsMode)?"Light":"dark".equals(settingsMode)?"Dark":"Follow system"),this::showSettingsAppearance);mode.setTag("settings_appearance");
+        help(appAppearance,"Follow system is the default. This changes settings screens only; your notification panel keeps its own colours and font.");
+
         LinearLayout advanced=section(root,"advanced","Advanced & about","Language, defaults and app information",false);
+        action(advanced,"Star on GitHub",()->{
+            try{startActivity(new Intent(Intent.ACTION_VIEW,Uri.parse("https://github.com/ubaimutl/VeilPanel")));}
+            catch(android.content.ActivityNotFoundException unavailable){android.widget.Toast.makeText(this,"No app available to open this link",android.widget.Toast.LENGTH_SHORT).show();}
+        });
+        action(advanced,"Report an issue or suggest a feature",()->{
+            try{startActivity(new Intent(Intent.ACTION_VIEW,Uri.parse("https://github.com/ubaimutl/VeilPanel/issues/new")));}
+            catch(android.content.ActivityNotFoundException unavailable){android.widget.Toast.makeText(this,"No app available to open this link",android.widget.Toast.LENGTH_SHORT).show();}
+        });
         action(advanced,"Backup & transfer settings",()->startActivityForResult(new Intent(this,SettingsTransferActivity.class),REQUEST_TRANSFER_SETTINGS));
         addLanguageControl(advanced);
         addPanelSwitch(advanced,"Preview saved wallpaper in legacy backdrop","fallback_always",false);
@@ -682,7 +710,7 @@ public class MainActivity extends androidx.appcompat.app.AppCompatActivity {
         TextView value=new TextView(this);value.setTextSize(16);value.setTypeface(android.graphics.Typeface.DEFAULT_BOLD);value.setPadding(dp(12),0,dp(8),0);value.setTextColor(com.ubai.veilpanel.ui.SettingsStyle.primaryText(this));value.setGravity(Gravity.CENTER);value.setMinWidth(dp(48));value.setMinHeight(dp(48));value.setClickable(true);value.setFocusable(true);row.addView(value,new LinearLayout.LayoutParams(-2,-2));setting.addView(row);
         String explanation=com.ubai.veilpanel.ui.SettingDescriptions.forKey(key);if(explanation!=null){TextView detail=new TextView(this);detail.setText(explanation);detail.setTextSize(14);detail.setLineSpacing(dp(3),1);detail.setTextColor(com.ubai.veilpanel.ui.SettingsStyle.secondaryText(this));detail.setPadding(0,0,dp(8),dp(8));setting.addView(detail);}
         LinearLayout control=new LinearLayout(this);control.setGravity(Gravity.CENTER_VERTICAL);
-        com.google.android.material.slider.Slider slider=new com.google.android.material.slider.Slider(this);slider.setTag("value:"+key);slider.setValueFrom(min);slider.setValueTo(max);slider.setStepSize(1);slider.setValue(Math.max(min,Math.min(max,getSharedPreferences("veil_panel",0).getInt(key,initial))));slider.setContentDescription(title);slider.setTrackHeight(dp(16));slider.setThumbWidth(dp(4));slider.setThumbHeight(dp(44));slider.setThumbTrackGapSize(dp(6));slider.setTrackStopIndicatorSize(dp(4));slider.setTrackInsideCornerSize(dp(2));slider.setTickVisible(false);slider.setLabelBehavior(com.google.android.material.slider.LabelFormatter.LABEL_GONE);control.addView(slider,new LinearLayout.LayoutParams(0,dp(56),1));
+        com.google.android.material.slider.Slider slider=new com.google.android.material.slider.Slider(this);slider.setTag("value:"+key);slider.setValueFrom(min);slider.setValueTo(max);slider.setStepSize(1);slider.setValue(Math.max(min,Math.min(max,getSharedPreferences("veil_panel",0).getInt(key,initial))));slider.setContentDescription(title);slider.setTrackHeight(dp(16));slider.setThumbWidth(dp(4));slider.setThumbHeight(dp(44));slider.setThumbTrackGapSize(dp(6));slider.setTrackStopIndicatorSize(dp(4));slider.setTrackInsideCornerSize(dp(2));slider.setTickVisible(false);slider.setLabelBehavior(com.google.android.material.slider.LabelFormatter.LABEL_GONE);control.addView(slider,new LinearLayout.LayoutParams(0,-2,1));
         Button reset=new Button(this);reset.setTag("reset:"+key);reset.setText("↺");reset.setTextSize(26);reset.setTextColor(com.ubai.veilpanel.ui.SettingsStyle.secondaryText(this));reset.setContentDescription("Reset "+title+" to "+initial);reset.setMinWidth(0);reset.setMinimumWidth(0);reset.setPadding(0,0,0,0);reset.setBackground(com.ubai.veilpanel.ui.SettingsStyle.touch(this,Color.TRANSPARENT,24));control.addView(reset,new LinearLayout.LayoutParams(dp(48),dp(48)));reset.setOnClickListener(v->slider.setValue(initial));setting.addView(control);root.addView(setting,new LinearLayout.LayoutParams(-1,-2));
         Runnable refresh=()->{int next=Math.round(slider.getValue());value.setText(next+(title.contains("%")?"%":""));value.setContentDescription(title+", "+next+". Tap to enter a value.");reset.setEnabled(next!=initial);reset.setAlpha(next==initial?.35f:1);};refresh.run();
         value.setOnClickListener(v->{android.widget.EditText input=new android.widget.EditText(this);input.setInputType(android.text.InputType.TYPE_CLASS_NUMBER|(min<0?android.text.InputType.TYPE_NUMBER_FLAG_SIGNED:0));input.setText(String.valueOf(Math.round(slider.getValue())));input.selectAll();new com.ubai.veilpanel.ui.SettingsDialogBuilder(this).setTitle(title+" ("+min+"–"+max+")").setView(input).setNegativeButton(android.R.string.cancel,null).setPositiveButton("Apply",(dialog,which)->{try{slider.setValue(Math.max(min,Math.min(max,Integer.parseInt(input.getText().toString().trim()))));}catch(NumberFormatException ignored){}}).show();});

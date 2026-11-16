@@ -72,7 +72,7 @@
         </service>
 
         <activity android:name=".image.ImageCropActivity" android:exported="false" />
-        <activity android:name=".ReplyActivity" android:exported="false" android:excludeFromRecents="true" android:windowSoftInputMode="adjustResize" />
+        <activity android:name=".ReplyActivity" android:theme="@style/VeilReplyTheme" android:exported="false" android:excludeFromRecents="true" android:windowSoftInputMode="adjustResize" />
         <activity android:name=".WallpaperBackdropActivity" android:exported="false" android:excludeFromRecents="true"
           android:launchMode="singleTask" android:taskAffinity="com.ubai.veilpanel.backdrop" android:theme="@style/WallpaperPanelTheme" />
     </application>

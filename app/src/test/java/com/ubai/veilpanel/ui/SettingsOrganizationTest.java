@@ -53,7 +53,7 @@ public class SettingsOrganizationTest {
    root.findViewWithTag("category:header").performClick();assertEquals(View.VISIBLE,clock.getVisibility());assertEquals(View.GONE,setup.getVisibility());assertTrue(root.findViewWithTag("category:header").isSelected());
    root.findViewWithTag("settings_back").performClick();EditText search=root.findViewWithTag("settings_search");search.setText("Wallpaper blur");assertEquals(View.VISIBLE,root.findViewWithTag("section:wallpaper").getVisibility());assertEquals(View.GONE,clock.getVisibility());
    search.setText("no such setting xyz");assertEquals(View.VISIBLE,root.findViewWithTag("settings_empty").getVisibility());search.setText("");assertEquals(View.VISIBLE,root.findViewWithTag("settings_categories").getVisibility());
-   root.findViewWithTag("category:themes").performClick();assertEquals(View.VISIBLE,themes.getVisibility());assertTrue(root.findViewWithTag("theme_carousel") instanceof HorizontalScrollView);
+   root.findViewWithTag("category:themes").performClick();assertEquals(View.VISIBLE,themes.getVisibility());assertTrue(root.findViewWithTag("theme_grid") instanceof GridLayout);assertNull(root.findViewWithTag("theme_carousel"));
    assertEquals(before,prefs.getAll());
   }
  }
@@ -108,6 +108,28 @@ public class SettingsOrganizationTest {
    View root=controller.get().getWindow().getDecorView();root.findViewWithTag("category:replies").performClick();assertEquals(View.VISIBLE,root.findViewWithTag("section:replies").getVisibility());
    root.findViewWithTag("choice:reply_send_style").performClick();androidx.appcompat.app.AlertDialog dialog=(androidx.appcompat.app.AlertDialog)org.robolectric.shadows.ShadowDialog.getLatestDialog();dialog.getListView().performItemClick(null,1,1);
    assertEquals("filled",prefs.getString("reply_send_style",""));assertEquals(13,prefs.getInt("card_radius",0));assertNotNull(root.findViewWithTag("setting:reply_show_preview"));assertNotNull(root.findViewWithTag("value:reply_spacing"));
+  }
+ }
+ @Test public void optionalBottomActionsAreReachableAndDoNotRequestPermissionOnOpening(){
+  RuntimeEnvironment.getApplication().getSharedPreferences("veil_panel",0).edit().clear().commit();
+  try(var controller=Robolectric.buildActivity(MainActivity.class).setup()){
+   View root=controller.get().getWindow().getDecorView();root.findViewWithTag("category:bottomactions").performClick();assertFalse(((android.widget.CompoundButton)root.findViewWithTag("setting:bottom_actions_enabled")).isChecked());assertNotNull(root.findViewWithTag("choice:bottom_action_left"));com.google.android.material.slider.Slider distance=root.findViewWithTag("value:bottom_action_bottom");assertEquals(0,distance.getValueFrom(),0);assertEquals(48,distance.getValue(),0);assertFalse(((android.widget.CompoundButton)root.findViewWithTag("setting:bottom_actions_fade")).isChecked());
+   assertFalse(controller.get().getSharedPreferences("panel_settings_ui",0).getBoolean("flashlight_permission_asked",false));
+  }
+ }
+ @Test public void presetUndoStaysOutsideTheScrollerAndDisappearsAfterLeavingPresets(){
+  Context context=RuntimeEnvironment.getApplication();context.getSharedPreferences("panel_theme_history",0).edit().clear().commit();com.ubai.veilpanel.config.PanelThemePresets.apply(context,"minimal");
+  try(var controller=Robolectric.buildActivity(MainActivity.class).setup()){
+   View root=controller.get().getWindow().getDecorView();root.findViewWithTag("category:themes").performClick();GridLayout grid=root.findViewWithTag("theme_grid");assertEquals(com.ubai.veilpanel.config.PanelThemePresets.IDS.length,grid.getChildCount());assertTrue(grid.getColumnCount()>=2);
+   root.measure(View.MeasureSpec.makeMeasureSpec(1080,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(1800,View.MeasureSpec.EXACTLY));root.layout(0,0,1080,1800);
+   ScrollView scroll=root.findViewWithTag("settings_scroll");View bar=root.findViewWithTag("theme_undo_bar");assertEquals(View.VISIBLE,bar.getVisibility());assertSame(scroll.getParent(),bar.getParent());assertTrue(bar.getTop()>=scroll.getBottom());int top=bar.getTop();scroll.scrollTo(0,700);assertEquals(top,bar.getTop());assertNotNull(root.findViewWithTag("theme:undo"));
+   root.findViewWithTag("settings_back").performClick();assertEquals(View.GONE,bar.getVisibility());
+  }
+ }
+ @Test public void nonLiquidMaterialSwitchesCannotOverrideEachOther(){
+  Context context=RuntimeEnvironment.getApplication();context.getSharedPreferences("veil_panel",0).edit().clear().commit();
+  try(var controller=Robolectric.buildActivity(MainActivity.class).setup()){
+   View root=controller.get().getWindow().getDecorView();android.widget.CompoundButton frost=root.findViewWithTag("setting:reference_glass"),experimental=root.findViewWithTag("setting:experimental_glass");frost.setChecked(true);experimental.setChecked(true);assertFalse(frost.isChecked());assertTrue(experimental.isChecked());frost.setChecked(true);assertFalse(experimental.isChecked());assertTrue(frost.isChecked());
   }
  }
  @Test public void dedicatedSettingsFontDoesNotReplaceTheSelectedPanelFont(){

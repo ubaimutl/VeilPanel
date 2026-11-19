@@ -20,8 +20,8 @@ public final class SettingsNavigator {
  public SettingsNavigator(Context context,LinearLayout toolbar,LinearLayout content,ScrollView scroll,EditText search,Consumer<String> onSelection){
   this.context=context;this.scroll=scroll;this.search=search;this.onSelection=onSelection;
   home=new LinearLayout(context);home.setTag("settings_categories");home.setOrientation(LinearLayout.VERTICAL);
-  String[] keys={"access","themes","wallpaper","statusbar","header","notifications","typography","layout","liquid","gestures","handle","replies","motion","appappearance","advanced"};
-  String[] labels={"Setup & access","Presets","Wallpaper & glass","Status bar","Clock & header","Notifications","Typography & icons","Spacing & layout","Liquid Glass","Gestures & shortcuts","Dismiss handle","Replies & actions","Motion","Settings appearance","About & backup"};
+  String[] keys={"access","themes","wallpaper","statusbar","header","notifications","typography","layout","liquid","gestures","handle","bottomactions","replies","motion","appappearance","advanced"};
+  String[] labels={"Setup & access","Presets","Wallpaper & glass","Status bar","Clock & header","Notifications","Typography & icons","Spacing & layout","Liquid Glass","Gestures & shortcuts","Dismiss handle","Bottom actions","Replies & actions","Motion","Settings appearance","About & backup"};
   for(int i=0;i<keys.length;i++){
    String key=keys[i];View page=content.findViewWithTag("themes".equals(key)?"theme_presets":"section:"+key);if(page==null)continue;pages.put(key,page);
    if(page instanceof SettingsSection)((SettingsSection)page).setNavigationPage();
@@ -40,7 +40,7 @@ public final class SettingsNavigator {
  }
  public boolean back(){if(search.length()>0){search.setText("");hideKeyboard();return true;}if(!"home".equals(selected)){select("home");return true;}return false;}
  public void select(String key){
-  selected=pages.containsKey(key)?key:"home";search.setText("");hideKeyboard();onSelection.accept(selected);filter("");
+  selected=pages.containsKey(key)?key:"home";search.setText("");hideKeyboard();filter("");onSelection.accept(selected);
  }
  private void hideKeyboard(){((android.view.inputmethod.InputMethodManager)context.getSystemService(Context.INPUT_METHOD_SERVICE)).hideSoftInputFromWindow(search.getWindowToken(),0);search.clearFocus();home.setFocusableInTouchMode(true);home.requestFocus();}
  private void filter(String query){

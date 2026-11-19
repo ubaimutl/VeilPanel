@@ -44,6 +44,11 @@ import fr.gibapps.ui.background.GibBackgroundDrawable;
  * permission/setup section followed by the same panel editor.
  */
 public class MainActivity extends androidx.appcompat.app.AppCompatActivity {
+    private static final int REQUEST_FLASHLIGHT=0x5646;
+    private Button flashlightAccess;
+    private LinearLayout presetUndoBar;
+    private View presetPage;
+    private void refreshPresetUndo(){if(presetUndoBar!=null)presetUndoBar.setVisibility(presetPage!=null&&presetPage.getVisibility()==View.VISIBLE&&com.ubai.veilpanel.config.PanelThemePresets.canUndo(this)?View.VISIBLE:View.GONE);}
 
     public static final String EXTRA_OPEN_PANEL_CONFIGURATION =
             "com.ubai.veilpanel.OPEN_PANEL_CONFIGURATION";
@@ -134,7 +139,23 @@ public class MainActivity extends androidx.appcompat.app.AppCompatActivity {
         });
         if(savedInstanceState==null&&getIntent().getBooleanExtra("open_transfer_settings",false))startActivityForResult(new Intent(this,SettingsTransferActivity.class),REQUEST_TRANSFER_SETTINGS);
         if(savedInstanceState==null&&getIntent().getBooleanExtra("open_liquid_settings",false))settingsNavigator.select("liquid");
+        handleBottomActionIntent(getIntent());
     }
+
+    @Override protected void onNewIntent(Intent intent){super.onNewIntent(intent);setIntent(intent);handleBottomActionIntent(intent);}
+    private void handleBottomActionIntent(Intent intent){
+        if(intent.getBooleanExtra("open_bottom_actions_settings",false)&&settingsNavigator!=null){settingsNavigator.select("bottomactions");intent.removeExtra("open_bottom_actions_settings");}
+        if(intent.getBooleanExtra("request_flashlight_permission",false)){intent.removeExtra("request_flashlight_permission");requestFlashlightAccess();}
+    }
+    private void refreshFlashlightAccess(){if(flashlightAccess!=null)flashlightAccess.setText(checkSelfPermission(Manifest.permission.CAMERA)==PackageManager.PERMISSION_GRANTED?"Flashlight access · Allowed":"Allow flashlight access");}
+    private void requestFlashlightAccess(){
+        var prefs=getSharedPreferences("panel_settings_ui",0);
+        if(checkSelfPermission(Manifest.permission.CAMERA)==PackageManager.PERMISSION_GRANTED||(prefs.getBoolean("flashlight_permission_asked",false)&&!shouldShowRequestPermissionRationale(Manifest.permission.CAMERA))){
+            startActivity(new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,Uri.parse("package:"+getPackageName())));return;
+        }
+        prefs.edit().putBoolean("flashlight_permission_asked",true).apply();requestPermissions(new String[]{Manifest.permission.CAMERA},REQUEST_FLASHLIGHT);
+    }
+    @Override public void onRequestPermissionsResult(int code,String[] permissions,int[] results){super.onRequestPermissionsResult(code,permissions,results);if(code==REQUEST_FLASHLIGHT)refreshFlashlightAccess();}
 
     private com.ubai.veilpanel.ui.PullAreaPreview pullAreaPreview;
     private Button pullAreaPreviewButton;
@@ -154,7 +175,7 @@ public class MainActivity extends androidx.appcompat.app.AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        refreshStatus();
+        refreshStatus();refreshFlashlightAccess();
         PanOSPNotificationListener.reconnectIfNeeded(this);
 
 
@@ -451,11 +472,17 @@ public class MainActivity extends androidx.appcompat.app.AppCompatActivity {
         android.widget.EditText search=new android.widget.EditText(this);search.setTag("settings_search");search.setSingleLine(true);search.setTextSize(16);search.setHint("Search settings");search.setContentDescription("Search settings");search.setTextColor(com.ubai.veilpanel.ui.SettingsStyle.primaryText(this));search.setHintTextColor(com.ubai.veilpanel.ui.SettingsStyle.secondaryText(this));search.setPadding(dp(16),0,dp(16),0);search.setBackground(com.ubai.veilpanel.ui.SettingsStyle.rounded(this,com.ubai.veilpanel.ui.PanOSPTheme.blend(com.ubai.veilpanel.ui.SettingsStyle.panelBackground(this),com.ubai.veilpanel.ui.SettingsStyle.primaryText(this),.08f),16));search.setInputType(android.text.InputType.TYPE_CLASS_TEXT);search.setImeOptions(android.view.inputmethod.EditorInfo.IME_ACTION_SEARCH);toolbar.addView(search,new LinearLayout.LayoutParams(-1,dp(52)));windowRoot.addView(toolbar,1);
 
         addSetupContent(root);
+        presetPage=root.findViewWithTag("theme_presets");
+        presetUndoBar=new LinearLayout(this);presetUndoBar.setTag("theme_undo_bar");presetUndoBar.setOrientation(LinearLayout.VERTICAL);presetUndoBar.setPadding(dp(16),dp(8),dp(16),dp(8));presetUndoBar.setBackgroundColor(com.ubai.veilpanel.ui.SettingsStyle.panelBackground(this));presetUndoBar.setVisibility(View.GONE);
+        if(com.ubai.veilpanel.config.PanelThemePresets.canUndo(this)){
+            Button undo=action(presetUndoBar,"Undo last theme",()->{if(com.ubai.veilpanel.config.PanelThemePresets.undo(this))recreate();else android.widget.Toast.makeText(this,"Previous look could not be restored",android.widget.Toast.LENGTH_SHORT).show();});undo.setTag("theme:undo");undo.setGravity(Gravity.CENTER);undo.setPadding(dp(16),dp(8),dp(16),dp(8));undo.setMinHeight(dp(48));undo.setMinimumHeight(dp(48));
+        }
+        windowRoot.addView(presetUndoBar,windowRoot.indexOfChild(navigationBarScrim),new LinearLayout.LayoutParams(-1,-2));
 
         windowRoot.setBackgroundColor(com.ubai.veilpanel.ui.SettingsStyle.panelBackground(this));
         scrollView.addView(root);
-        settingsNavigator=new com.ubai.veilpanel.ui.SettingsNavigator(this,toolbar,root,scrollView,search,key->{selectedSettingsPage=key;hidePullAreaPreview();});
-        search.addTextChangedListener(new android.text.TextWatcher(){public void beforeTextChanged(CharSequence s,int start,int count,int after){}public void afterTextChanged(android.text.Editable text){}public void onTextChanged(CharSequence s,int start,int before,int count){hidePullAreaPreview();}});
+        settingsNavigator=new com.ubai.veilpanel.ui.SettingsNavigator(this,toolbar,root,scrollView,search,key->{selectedSettingsPage=key;hidePullAreaPreview();refreshPresetUndo();});
+        search.addTextChangedListener(new android.text.TextWatcher(){public void beforeTextChanged(CharSequence s,int start,int count,int after){}public void afterTextChanged(android.text.Editable text){}public void onTextChanged(CharSequence s,int start,int before,int count){hidePullAreaPreview();refreshPresetUndo();}});
         settingsNavigator.select(selectedSettingsPage);
 
 
@@ -506,27 +533,28 @@ public class MainActivity extends androidx.appcompat.app.AppCompatActivity {
         int accent=com.ubai.veilpanel.ui.SettingsStyle.accent(this),background=com.ubai.veilpanel.ui.SettingsStyle.panelBackground(this);
 
         TextView heading=new TextView(this);heading.setText("Presets");heading.setTextSize(34);heading.setPadding(dp(4),dp(20),0,dp(28));heading.setTextColor(com.ubai.veilpanel.ui.SettingsStyle.primaryText(this));heading.setTypeface(android.graphics.Typeface.create(android.graphics.Typeface.create("sans-serif",android.graphics.Typeface.NORMAL),600,false));box.addView(heading);
-        help(box,"Swipe to explore the presets. Tap a card to apply its look; Undo restores your previous appearance.");
-        android.widget.HorizontalScrollView carousel=new android.widget.HorizontalScrollView(this);carousel.setTag("theme_carousel");carousel.setHorizontalScrollBarEnabled(false);carousel.setClipToPadding(true);carousel.setHorizontalFadingEdgeEnabled(true);carousel.setFadingEdgeLength(dp(20));
-        LinearLayout choices=new LinearLayout(this);choices.setPadding(0,dp(4),dp(12),dp(8));carousel.addView(choices);box.addView(carousel,new LinearLayout.LayoutParams(-1,-2));
+        help(box,"Tap a preset to apply its look. Undo at the bottom restores your previous appearance.");
+        android.widget.GridLayout choices=new android.widget.GridLayout(this);choices.setTag("theme_grid");
+        int columns=getResources().getConfiguration().screenWidthDp>=600?3:2;
+        if(getResources().getConfiguration().fontScale>=1.5f)columns=1;
+        choices.setColumnCount(columns);choices.setUseDefaultMargins(false);box.addView(choices,new LinearLayout.LayoutParams(-1,-2));
         for(int i=0;i<com.ubai.veilpanel.config.PanelThemePresets.IDS.length;i++){
             final int index=i;LinearLayout choice=new LinearLayout(this);choice.setOrientation(LinearLayout.VERTICAL);choice.setPadding(dp(16),dp(10),dp(16),dp(16));choice.setTag("theme:"+com.ubai.veilpanel.config.PanelThemePresets.IDS[index]);choice.setClickable(true);choice.setFocusable(true);choice.setBackground(com.ubai.veilpanel.ui.SettingsStyle.touch(this,com.ubai.veilpanel.ui.PanOSPTheme.blend(background,accent,.08f),18));
             TextView name=new TextView(this);name.setText(com.ubai.veilpanel.config.PanelThemePresets.NAMES[index]);name.setTextSize(16);name.setTypeface(android.graphics.Typeface.DEFAULT_BOLD);name.setTextColor(com.ubai.veilpanel.ui.SettingsStyle.primaryText(this));name.setPadding(dp(4),dp(12),dp(4),dp(4));choice.addView(name);
             TextView description=new TextView(this);description.setText(com.ubai.veilpanel.config.PanelThemePresets.DESCRIPTIONS[index]);description.setTextSize(14);description.setMinHeight(dp(44));description.setTextColor(com.ubai.veilpanel.ui.SettingsStyle.secondaryText(this));description.setPadding(dp(4),0,dp(4),0);choice.addView(description);
             java.util.Map<String,Object> preset=com.ubai.veilpanel.config.PanelThemePresets.values(com.ubai.veilpanel.config.PanelThemePresets.IDS[index]);
             TextView details=new TextView(this);details.setText("Card opacity  "+preset.get("glass_opacity")+"%\nWallpaper blur  "+preset.get("blur")+"\nClock size  "+preset.get("clock_size"));details.setTextSize(14);details.setLineSpacing(dp(6),1);details.setTextColor(com.ubai.veilpanel.ui.SettingsStyle.secondaryText(this));details.setPadding(dp(4),dp(16),dp(4),dp(12));choice.addView(details);
+            choice.addView(new View(this),new LinearLayout.LayoutParams(1,0,1));
             TextView apply=new TextView(this);apply.setText("Apply theme  →");apply.setTextSize(14);apply.setTextColor(accent);apply.setPadding(dp(4),dp(8),dp(4),0);choice.addView(apply);
             choice.setContentDescription("Apply "+com.ubai.veilpanel.config.PanelThemePresets.NAMES[index]+" theme. "+com.ubai.veilpanel.config.PanelThemePresets.DESCRIPTIONS[index]+". "+details.getText());
-            LinearLayout.LayoutParams placement=new LinearLayout.LayoutParams(dp(220),-1);placement.setMarginEnd(dp(12));choices.addView(choice,placement);
+            android.widget.GridLayout.LayoutParams tile=new android.widget.GridLayout.LayoutParams(android.widget.GridLayout.spec(i/columns,android.widget.GridLayout.FILL),android.widget.GridLayout.spec(i%columns,1f));
+            tile.width=0;tile.height=-2;tile.setGravity(Gravity.FILL);tile.setMargins(i%columns==0?0:dp(6),dp(6),i%columns==columns-1?0:dp(6),dp(6));choices.addView(choice,tile);
             choice.setOnClickListener(v->{try{
                 com.ubai.veilpanel.config.PanelThemePresets.apply(this,com.ubai.veilpanel.config.PanelThemePresets.IDS[index]);
                 android.widget.Toast.makeText(this,com.ubai.veilpanel.config.PanelThemePresets.NAMES[index]+" theme applied",android.widget.Toast.LENGTH_SHORT).show();recreate();
             }catch(IllegalStateException unavailable){android.widget.Toast.makeText(this,"Could not save your previous look. Theme kept unchanged.",android.widget.Toast.LENGTH_LONG).show();}});
         }
         help(box,"Changes apply the next time the panel opens. Return to settings to fine-tune each look. Tap a slider value to enter an exact number.\n\nGlass uses your saved panel wallpaper; without one, cards use a frosted fallback. Gestures, recovery options and access stay as configured.");
-        if(com.ubai.veilpanel.config.PanelThemePresets.canUndo(this)){
-            Button undo=action(box,"Undo last theme",()->{if(com.ubai.veilpanel.config.PanelThemePresets.undo(this))recreate();else android.widget.Toast.makeText(this,"Previous look could not be restored",android.widget.Toast.LENGTH_SHORT).show();});undo.setTag("theme:undo");
-        }
         LinearLayout.LayoutParams placement=new LinearLayout.LayoutParams(-1,-2);placement.topMargin=dp(24);placement.bottomMargin=dp(4);root.addView(box,placement);
     }
 
@@ -569,8 +597,10 @@ public class MainActivity extends androidx.appcompat.app.AppCompatActivity {
         help(wallpaper,"Choose the original image used on Home. A private copy keeps the same background over every app, covers popup banners and works in power saver.");
         addGlassSlider(wallpaper,"Wallpaper blur",0,64,"blur",24);
         addPanelSwitch(wallpaper,"Follow wallpaper colours","dynamic",true);
-        addGlassSlider(wallpaper,"Card opacity (%)",45,100,"glass_opacity",66);
-        help(wallpaper,"Bright wallpapers receive extra shading so notification text stays readable. Glass tint and card opacity are minimum values; contrast protection can increase them.");
+        addGlassSlider(wallpaper,"Card opacity (%)",0,100,"glass_opacity",66);
+        addGlassSlider(wallpaper,"Card blur",0,64,"card_blur",0);
+        help(wallpaper,"Changes appear when you reopen the panel. Card opacity controls the plain and frosted materials. Liquid Glass has its own tint and blur below. Text contrast adapts to your saved wallpaper.");
+        if(com.ubai.veilpanel.image.PowerSaverBackdrop.available(this)&&!com.ubai.veilpanel.image.PowerSaverBackdrop.adjustable(this))help(wallpaper,"This wallpaper came from an older backup. You can add blur, but choose the original image again to remove its existing blur.");
         addPanelSwitch(wallpaper,"Frosted glass cards","reference_glass",false);
         addPanelSwitch(wallpaper,"Experimental glass material","experimental_glass",false);
         addPanelSwitch(wallpaper,"Borders around controls","control_borders",false);
@@ -585,7 +615,7 @@ public class MainActivity extends androidx.appcompat.app.AppCompatActivity {
 
         LinearLayout liquid=section(root,"liquid","Liquid Glass experiment","Kyant lens, wallpaper refraction and edge light",false);
         addPanelSwitch(liquid,"Use Kyant lens cards","kyant_liquid_glass",false);
-        help(liquid,"An optional adaptation of AndroidLiquidGlass. Uses your saved panel wallpaper for refraction and blur, including in power saver. Text and icons stay sharp. Turn it off to return to your existing card style. Choose a panel wallpaper first.");
+        help(liquid,"An optional adaptation of AndroidLiquidGlass. These controls apply only while Liquid Glass is on. With it off, use Wallpaper & glass for blur, opacity and frost. A saved panel wallpaper is needed for refraction.");
         addGlassSlider(liquid,"Refraction strength",0,32,"liquid_refraction",12);
         addGlassSlider(liquid,"Lens edge width",2,36,"liquid_edge",18);
         addGlassSlider(liquid,"Glass blur",0,64,"liquid_blur",20);
@@ -639,6 +669,20 @@ public class MainActivity extends androidx.appcompat.app.AppCompatActivity {
         LinearLayout layout=section(root,"layout","Spacing & layout","Card dimensions, margins and alignment",false);
         for(String key:new String[]{"card_width","card_height","card_padding","card_gap","card_radius","side_margin","icon_gap","header_gap"})addOption(layout,key);
 
+        LinearLayout bottom=section(root,"bottomactions","Bottom actions","Optional shortcuts near the bottom edge",false);
+        addPanelSwitch(bottom,"Show bottom action buttons","bottom_actions_enabled",false);
+        help(bottom,"Off by default. Add two circular shortcuts while the panel is open. Choose None to hide either one.");
+        addHeaderChoice(bottom,"Left action","bottom_action_left",com.ubai.veilpanel.config.BottomActionOptions.LABELS,com.ubai.veilpanel.config.BottomActionOptions.VALUES,"flashlight");
+        addHeaderChoice(bottom,"Right action","bottom_action_right",com.ubai.veilpanel.config.BottomActionOptions.LABELS,com.ubai.veilpanel.config.BottomActionOptions.VALUES,"camera");
+        addGlassSlider(bottom,"Button size",48,72,"bottom_action_size",56);
+        addGlassSlider(bottom,"Distance from sides",24,64,"bottom_action_side",32);
+        addGlassSlider(bottom,"Distance from bottom",0,220,"bottom_action_bottom",48);
+        addPanelSwitch(bottom,"Fade notifications behind buttons","bottom_actions_fade",false);
+        help(bottom,"Gently fade scrolling notifications before they reach the buttons. The wallpaper and buttons stay clear. Turn off for the normal scrolling view.");
+        help(bottom,"Zero places the buttons at the bottom edge; 48 is the default. The dismiss handle keeps a separate grab area between the buttons. Changes apply when you reopen the panel.");
+        flashlightAccess=action(bottom,"Allow flashlight access",this::requestFlashlightAccess);refreshFlashlightAccess();
+        help(bottom,"Only the flashlight needs camera permission. Veil uses the flash without opening a camera or taking photos. The Camera action opens your phone’s camera app.");
+
         LinearLayout replies=section(root,"replies","Replies & actions","Reply buttons, previews and spacing",false);
         help(replies,"Replies use the notification card’s corner radius, border and font. Change those under Spacing & layout and Typography & icons.");
         addHeaderChoice(replies,"Send button style","reply_send_style",new String[]{"Text","Filled"},new String[]{"text","filled"},"text");
@@ -671,7 +715,7 @@ public class MainActivity extends androidx.appcompat.app.AppCompatActivity {
             catch(android.content.ActivityNotFoundException unavailable){android.widget.Toast.makeText(this,"No app available to open this link",android.widget.Toast.LENGTH_SHORT).show();}
         });
         action(advanced,"Report an issue or suggest a feature",()->{
-            try{startActivity(new Intent(Intent.ACTION_VIEW,Uri.parse("https://github.com/ubaimutl/VeilPanel/issues/new")));}
+            try{startActivity(new Intent(Intent.ACTION_VIEW,Uri.parse("https://github.com/ubaimutl/VeilPanel/issues/new/choose")));}
             catch(android.content.ActivityNotFoundException unavailable){android.widget.Toast.makeText(this,"No app available to open this link",android.widget.Toast.LENGTH_SHORT).show();}
         });
         action(advanced,"Backup & transfer settings",()->startActivityForResult(new Intent(this,SettingsTransferActivity.class),REQUEST_TRANSFER_SETTINGS));
@@ -702,7 +746,12 @@ public class MainActivity extends androidx.appcompat.app.AppCompatActivity {
         TextView label=new TextView(this);label.setText(title);label.setTextSize(16);label.setTextColor(com.ubai.veilpanel.ui.SettingsStyle.primaryText(this));row.addView(label,new LinearLayout.LayoutParams(0,-2,1));
         com.google.android.material.materialswitch.MaterialSwitch toggle=new com.google.android.material.materialswitch.MaterialSwitch(this);toggle.setTag("setting:"+key);toggle.setContentDescription(title);toggle.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);toggle.setFocusable(false);toggle.setChecked(getSharedPreferences("veil_panel",0).getBoolean(key,initial));LinearLayout.LayoutParams switchParams=new LinearLayout.LayoutParams(-2,dp(48));switchParams.setMarginStart(dp(16));row.addView(toggle,switchParams);
         row.setContentDescription(title);row.setAccessibilityDelegate(new View.AccessibilityDelegate(){@Override public void onInitializeAccessibilityNodeInfo(View host,android.view.accessibility.AccessibilityNodeInfo info){super.onInitializeAccessibilityNodeInfo(host,info);info.setClassName(android.widget.Switch.class.getName());info.setCheckable(true);info.setChecked(toggle.isChecked());}});
-        row.setOnClickListener(v->toggle.setChecked(!toggle.isChecked()));toggle.setOnCheckedChangeListener((v,value)->{getSharedPreferences("veil_panel",0).edit().putBoolean(key,value).apply();if("dynamic".equals(key))recreate();});root.addView(row,new LinearLayout.LayoutParams(-1,-2));
+        row.setOnClickListener(v->toggle.setChecked(!toggle.isChecked()));toggle.setOnCheckedChangeListener((v,value)->{getSharedPreferences("veil_panel",0).edit().putBoolean(key,value).apply();
+            if(value&&("reference_glass".equals(key)||"experimental_glass".equals(key))){
+                String other="reference_glass".equals(key)?"experimental_glass":"reference_glass";getSharedPreferences("veil_panel",0).edit().putBoolean(other,false).apply();
+                android.widget.CompoundButton otherToggle=getWindow().getDecorView().findViewWithTag("setting:"+other);if(otherToggle!=null)otherToggle.setChecked(false);
+            }
+            if("dynamic".equals(key))recreate();});root.addView(row,new LinearLayout.LayoutParams(-1,-2));
     }
     private void addGlassSlider(LinearLayout root,String title,int min,int max,String key,int initial) {
         LinearLayout setting=new LinearLayout(this);setting.setTag("setting:"+key);setting.setOrientation(LinearLayout.VERTICAL);setting.setPadding(dp(20),dp(20),dp(12),dp(16));

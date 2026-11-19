@@ -24,6 +24,8 @@ Open **Wallpaper & glass → Choose panel wallpaper**. Pick the image you want b
 
 Veil saves its own copy. It does not change your home-screen wallpaper. If you change that wallpaper later, choose the new image in Veil too. Live wallpaper movement is not copied.
 
+With Liquid Glass off, **Card opacity** adjusts the card tint from clear to solid. **Card blur** softens the saved wallpaper only inside cards, leaving text sharp. It is separate from **Wallpaper blur**, which softens the whole background. Reopen the panel after changing these settings.
+
 If an app or video pauses when you open the panel, check that you have chosen a panel wallpaper and allowed **Display over other apps**.
 
 ## Open, read and close
@@ -42,15 +44,17 @@ You can also enable **Swipe up again at the end to close**. Scroll to the bottom
 
 You can also add Veil’s **Open notifications** shortcut through a launcher that supports app shortcuts.
 
+Under **Bottom actions**, enable the optional shortcuts and choose Flashlight, Camera, Veil settings, Close panel or None for either side. Lower **Distance from bottom** to move them closer to the edge: zero is the edge and 48 is the default. The dismiss handle keeps its own area between them. Enable **Fade notifications behind buttons** to make scrolling cards disappear gently before reaching the buttons. The flashlight asks for camera permission only when you choose to allow it; it does not take photos.
+
 ## Find a look you like
 
-Open **Presets** and try Minimal, Frosted, Glass, Readable or Demo. **Undo last theme** restores the look you had immediately before your most recent preset. It remembers one change, so save a backup if you want to keep several setups.
+Open **Presets** and try Minimal, Frosted, Glass, Readable, Demo, Orbit, Editorial, Slate, Air or Nocturne. Presets are arranged in a grid. **Undo last theme** stays at the bottom while you browse and restores the look you had immediately before your most recent preset. It remembers one change, so save a backup if you want to keep several setups.
 
 Then explore the settings:
 
 | Setting | What you can change |
 | --- | --- |
-| Wallpaper & glass | Background image, blur and card opacity. |
+| Wallpaper & glass | Background image, wallpaper blur, card opacity and separate card blur when Liquid Glass is off. |
 | Status bar | Show or hide the icons, choose their colour, and use transparent content or a wallpaper background. |
 | Clock & header | Clock and date sizes, alignment and style. |
 | Notifications | How much notification text appears before and after expansion. |
@@ -58,6 +62,7 @@ Then explore the settings:
 | Spacing & layout | Card width, height, gaps and margins. |
 | Liquid Glass | Glass highlights and other glass effects. |
 | Dismiss handle | Handle position and the size of the area you can grab. |
+| Bottom actions | Optional left and right shortcuts, button size and position. |
 | Replies & actions | Text or filled Send buttons, Cancel visibility, the app icon, message previews, text size and spacing. |
 | Motion | Scrolling bounce and help with gestures that open Android’s panel. |
 

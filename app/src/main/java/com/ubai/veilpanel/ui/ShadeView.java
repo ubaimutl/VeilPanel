@@ -49,6 +49,7 @@ public final class ShadeView extends LinearLayout {
 
     private final Runnable requestClose;
     private final LiquidGlassBackdrop liquidBackdrop;
+    private final LiquidGlassBackdrop cardBackdrop;
     private final SettingsLauncher settingsLauncher;
     private final NotificationRepository notificationRepository;
     private final SystemFeedbackRepository feedbackRepository;
@@ -84,6 +85,7 @@ public final class ShadeView extends LinearLayout {
     public ShadeView(Context context, Runnable requestClose) {
         super(context);
         liquidBackdrop=new LiquidGlassBackdrop(this);
+        cardBackdrop=new LiquidGlassBackdrop(this,"card_blur");
 
         this.requestClose = requestClose;
         settingsLauncher = new SettingsLauncher(context, requestClose);
@@ -101,7 +103,7 @@ public final class ShadeView extends LinearLayout {
 
 
     public void onShown() {
-        liquidBackdrop.open();
+        liquidBackdrop.open();cardBackdrop.open();
         com.ubai.veilpanel.notifications.PanOSPNotificationListener.reconnectIfNeeded(getContext());
         notificationRepository.addListener(notificationListener);
         notificationRepository.requestRefresh();
@@ -112,7 +114,7 @@ public final class ShadeView extends LinearLayout {
     }
 
     public void onHidden() {
-        liquidBackdrop.close();
+        liquidBackdrop.close();cardBackdrop.close();
         notificationRepository.removeListener(notificationListener);
         feedbackRepository.removeListener(feedbackListener);
 
@@ -159,7 +161,7 @@ public final class ShadeView extends LinearLayout {
         // Draw the configured color immediately. The optional image is decoded
         // off the UI thread and applied afterwards to avoid blocking the shade.
         // The system wallpaper is behind the window; the panel surface stays clear.
-        if (PanOSPTheme.followsWallpaper(getContext())) setBackgroundColor(Color.TRANSPARENT);
+        if (com.ubai.veilpanel.image.PowerSaverBackdrop.available(getContext())||PanOSPTheme.followsWallpaper(getContext())) setBackgroundColor(Color.TRANSPARENT);
         else setBackground(new PanelBackgroundDrawable(
             appearancePreferences.getThemeBackgroundType(),appearancePreferences.getThemeBackgroundColor(),
             appearancePreferences.getThemeBackgroundColor2(),appearancePreferences.getThemeBackgroundDirection(),
@@ -517,7 +519,7 @@ public final class ShadeView extends LinearLayout {
         }
 
         notificationsContainer.removeAllViews();
-        liquidBackdrop.resetCards();
+        liquidBackdrop.resetCards();cardBackdrop.resetCards();
 
         List<NotificationEntry> snapshot = notificationRepository.snapshot();
         Set<String> activeKeys = new HashSet<>();
@@ -588,18 +590,28 @@ public final class ShadeView extends LinearLayout {
         renderNotifications();
     }
 
+    /** Only the exposed edge belongs to a rear card. Its opaque centre must
+     * not cancel the front card's chosen transparency. */
+    private static final class StackLayerView extends View {
+        private final android.graphics.Path covered=new android.graphics.Path();
+        StackLayerView(Context context){super(context);}
+        @Override protected void onSizeChanged(int w,int h,int oldw,int oldh){
+            super.onSizeChanged(w,h,oldw,oldh);float density=getResources().getDisplayMetrics().density;
+            covered.reset();covered.addRoundRect(-8*density,-6*density,w+8*density,h-6*density,NotificationCardSurface.radius(getContext()),NotificationCardSurface.radius(getContext()),android.graphics.Path.Direction.CW);
+        }
+        @Override public void draw(android.graphics.Canvas canvas){int saved=canvas.save();canvas.clipOutPath(covered);super.draw(canvas);canvas.restoreToCount(saved);}
+    }
+
     private void addCollapsedStack(String key, List<NotificationEntry> group) {
         FrameLayout stack = new FrameLayout(getContext());stack.setTransitionName("stack:"+key);
         stack.setContentDescription(group.get(0).getApplicationLabel()+", "+group.size()+" notifications. Expand group");
         final int backLayers=Math.min(2,group.size()-1);
         for (int layer=backLayers;layer>=1;layer--) {
-            View back = new View(getContext());
-            android.graphics.drawable.GradientDrawable bg=new android.graphics.drawable.GradientDrawable();
-            bg.setColor(layer==2 ? Color.rgb(42,42,42) : Color.rgb(49,49,49)); bg.setCornerRadius(dp(appearance("card_radius"))); back.setBackground(bg);
-            if(getContext().getSharedPreferences("veil_panel",0).getBoolean("reference_glass",false))back.setBackground(new ReferenceGlassDrawable(getContext(),dp(appearance("card_radius")),getContext().getSharedPreferences("veil_panel",0).getInt("glass_opacity",66)));
+            View back = new StackLayerView(getContext());
+            back.setBackground(NotificationCardSurface.create(getContext()));
             if(LiquidGlassOptions.enabled(getContext())){
                 back.setBackground(new LiquidGlassDrawable(getContext(),back,liquidBackdrop,dp(appearance("card_radius"))));liquidBackdrop.watch(back);
-            }
+            }else applyCardBlur(back);
             FrameLayout.LayoutParams bp=new FrameLayout.LayoutParams(-1,dp(appearance("card_height")));
             bp.setMargins(dp(layer*8),dp(layer*6),dp(layer*8),0); stack.addView(back,bp);
         }
@@ -635,6 +647,11 @@ public final class ShadeView extends LinearLayout {
         for(NotificationEntry e:group) notificationsContainer.addView(buildNotificationView(e));
     }
 
+    private void applyCardBlur(View card){
+        if(getContext().getSharedPreferences("veil_panel",0).getInt("card_blur",0)>0){
+            card.setBackground(new CardBlurDrawable(getContext(),card,cardBackdrop,card.getBackground()));cardBackdrop.watch(card);
+        }
+    }
     private LinearLayout buildNotificationView(NotificationEntry entry) { return buildNotificationView(entry,1,null); }
 
     private ImageButton iconButton(int resource,String description,Runnable action) {
@@ -644,7 +661,7 @@ public final class ShadeView extends LinearLayout {
         NotificationCard card=new NotificationCard(getContext());card.setTransitionName("notification:"+entry.getKey());card.setOrientation(HORIZONTAL);card.setGravity(Gravity.TOP);
         int pad=dp(appearance("card_padding"));card.setPadding(pad,pad,pad,pad);card.setMinimumHeight(dp(appearance("card_height")));
         card.setBackground(NotificationCardSurface.create(getContext()));
-        if(LiquidGlassOptions.enabled(getContext())){card.setBackground(new LiquidGlassDrawable(getContext(),card,liquidBackdrop,dp(appearance("card_radius"))));liquidBackdrop.watch(card);}
+        if(LiquidGlassOptions.enabled(getContext())){card.setBackground(new LiquidGlassDrawable(getContext(),card,liquidBackdrop,dp(appearance("card_radius"))));liquidBackdrop.watch(card);}else applyCardBlur(card);
         LinearLayout.LayoutParams cp=new LinearLayout.LayoutParams(cardWidth(),-2);cp.gravity=Gravity.CENTER_HORIZONTAL;cp.bottomMargin=dp(appearance("card_gap"));card.setLayoutParams(cp);
         android.widget.ImageView icon=new android.widget.ImageView(getContext());icon.setImageDrawable(entry.icon(getContext()));icon.setScaleType(android.widget.ImageView.ScaleType.FIT_CENTER);
         icon.setClipToOutline(true);icon.setOutlineProvider(new ViewOutlineProvider(){public void getOutline(View v,android.graphics.Outline outline){outline.setRoundRect(0,0,v.getWidth(),v.getHeight(),dp(appearance("icon_corner")));}});

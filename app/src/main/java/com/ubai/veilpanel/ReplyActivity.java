@@ -45,7 +45,7 @@ public final class ReplyActivity extends Activity {
         int spacing=Math.max(8,Math.min(24,prefs.getInt("reply_spacing",12)));
         ScrollView scroll=new ScrollView(this);scroll.setTag("reply_sheet");
         scroll.setVerticalScrollBarEnabled(false);scroll.setOverScrollMode(View.OVER_SCROLL_NEVER);
-        scroll.setBackground(NotificationCardSurface.create(this));scroll.setOutlineProvider(new android.view.ViewOutlineProvider(){
+        scroll.setBackground(NotificationCardSurface.opaque(this));scroll.setOutlineProvider(new android.view.ViewOutlineProvider(){
             @Override public void getOutline(View view,android.graphics.Outline outline){outline.setRoundRect(0,0,view.getWidth(),view.getHeight(),NotificationCardSurface.radius(ReplyActivity.this));}
         });scroll.setClipToOutline(true);
         LinearLayout body=new LinearLayout(this);body.setOrientation(LinearLayout.VERTICAL);

@@ -19,6 +19,9 @@ public final class FlashlightController {
     private boolean enabled;
     private boolean available;
     private boolean callbackRegistered;
+    private Runnable stateChanged;
+    public void setOnStateChangedListener(Runnable listener){stateChanged=listener;if(listener!=null)listener.run();}
+    private void notifyStateChanged(){if(stateChanged!=null)stateChanged.run();}
 
     private final CameraManager.TorchCallback torchCallback =
             new CameraManager.TorchCallback() {
@@ -31,6 +34,7 @@ public final class FlashlightController {
                             && cameraId.equals(changedCameraId)) {
                         available = true;
                         enabled = isEnabled;
+                        notifyStateChanged();
                     }
                 }
 
@@ -42,6 +46,7 @@ public final class FlashlightController {
                             && cameraId.equals(changedCameraId)) {
                         available = false;
                         enabled = false;
+                        notifyStateChanged();
                     }
                 }
             };
@@ -78,7 +83,9 @@ public final class FlashlightController {
         }
 
         try {
-            cameraManager.setTorchMode(cameraId, !enabled);
+            boolean target=!enabled;
+            cameraManager.setTorchMode(cameraId,target);
+            enabled=target;notifyStateChanged();
             return true;
         } catch (CameraAccessException
                  | IllegalArgumentException
@@ -88,6 +95,7 @@ public final class FlashlightController {
     }
 
     public void close() {
+        stateChanged=null;
         if (cameraManager != null && callbackRegistered) {
             try {
                 cameraManager.unregisterTorchCallback(torchCallback);

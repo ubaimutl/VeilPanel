@@ -5,12 +5,16 @@ public final class SettingDescriptions {
  private SettingDescriptions(){}
  public static String forKey(String key){
   switch(key){
+   case "bottom_action_size":return "Diameter of each circular action button.";
+   case "bottom_action_side":return "Keep the buttons away from left and right navigation gestures.";
+   case "bottom_action_bottom":return "Lower values move the buttons closer to the bottom edge.";
    case "reply_text_size":return "Size of the text you type in the reply composer.";
    case "reply_spacing":return "Padding inside the reply sheet. Lower values make it more compact.";
    case "pull_area_height":return "Height of the pull area from the top edge. Larger values are easier to reach but cover more of the app underneath.";
    case "split":return "The left side opens Veil. The remaining area opens Android quick settings.";
    case "blur":return "Soften your saved wallpaper. Zero keeps the image sharp.";
-   case "glass_opacity":return "Higher values make cards more solid. Contrast protection can add shading over bright images.";
+   case "card_blur":return "Blur the saved wallpaper inside cards while Liquid Glass is off. Zero uses the wallpaper as it is. Reopen the panel to see changes.";
+   case "glass_opacity":return "Zero removes the card tint. Higher values make cards more solid.";
    case "dismiss_handle_width":return "Length of the visible dismiss line.";
    case "dismiss_handle_bottom":return "Move the dismiss line away from the bottom edge.";
    case "dismiss_grab_width":return "Width of the invisible area that catches a dismiss gesture.";

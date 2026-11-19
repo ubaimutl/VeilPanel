@@ -7,9 +7,10 @@ import java.io.*;
 public final class PowerSaverBackdrop {
  private PowerSaverBackdrop(){}
  private static volatile Bitmap cached;
- private static Bitmap source,adjusted;private static int adjustedRadius=-1;
+ private static volatile Bitmap source;private static Bitmap adjusted;private static int adjustedRadius=-1;
  private static File file(Context context){return new File(context.getFilesDir(),"power-saver-backdrop.png");}
  private static File sourceFile(Context context){return new File(context.getFilesDir(),"panel-wallpaper-source.png");}
+ public static Bitmap peekSource(){Bitmap original=source;return original!=null?original:cached;}
  public static boolean adjustable(Context context){return sourceFile(context).isFile();}
  public static boolean available(Context context){return file(context).isFile();}
  public static synchronized void invalidateCache(){cached=null;source=null;adjusted=null;adjustedRadius=-1;}
@@ -17,12 +18,13 @@ public final class PowerSaverBackdrop {
  public static Bitmap load(Context context){if(cached!=null)return cached;Bitmap image=BitmapFactory.decodeFile(file(context).getPath());if(image!=null)cached=image;return image;}
  /** Runs on the image executor, never while drawing a frame. */
  public static synchronized Bitmap loadAtBlur(Context context,int strength){
-  if(!adjustable(context))return load(context);
-  if(source==null)source=BitmapFactory.decodeFile(sourceFile(context).getPath());
-  if(source==null)return load(context);
+  Bitmap input;
+  if(adjustable(context)){if(source==null)source=BitmapFactory.decodeFile(sourceFile(context).getPath());input=source;}
+  else input=load(context);
+  if(input==null)return load(context);
   int radius=Math.round(Math.max(0,Math.min(64,strength))*.5f);
-  if(radius==0)return source;
-  if(adjusted==null||adjustedRadius!=radius){adjusted=blur(source,radius);adjustedRadius=radius;}
+  if(radius==0)return input;
+  if(adjusted==null||adjustedRadius!=radius){adjusted=blur(input,radius);adjustedRadius=radius;}
   return adjusted;
  }
  public static void importImage(Context context,Uri uri) throws IOException {

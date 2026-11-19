@@ -16,6 +16,8 @@ It works alongside your existing launcher and Quick Settings, without root or Sh
 
 These screenshots were captured on a REDMAGIC 10 Pro running Android 16. Veil Panel is highly customizable, so your setup doesn't have to look like this.
 
+![Examples of Veil Panel layouts, wallpapers and card styles](docs/media/panel-examples.png)
+
 |                            Notification panel                             |                  Expanded silent notifications                   |
 | :-----------------------------------------------------------------------: | :--------------------------------------------------------------: |
 | ![Grouped notifications in Veil Panel](docs/media/notification-panel.jpg) | ![Expanded silent notifications](docs/media/silent-expanded.jpg) |
@@ -30,7 +32,7 @@ These screenshots were captured on a REDMAGIC 10 Pro running Android 16. Veil Pa
 
 ## Features
 
-- **Presets:** Start with a ready-made design and customize it.
+- **Presets:** Choose from ten looks, from compact Slate to serif Editorial and frosted Orbit.
 - **Notification cards:** Adjust spacing, sizes, corners, icons, and text.
 - **Clock and date:** Customize their appearance, typography, and layout.
 - **Wallpaper and glass:** Choose a background image and adjust blur and transparency.
@@ -50,6 +52,8 @@ Pull down from the left to open Veil Panel. Pull down from the right to access y
 Adjust the pull area's height and width in **Gestures & shortcuts**, with a live outline to show its size. You can also enable a second upward swipe at the bottom of the notification list to close Veil, with a light vibration when it is ready.
 
 Close Veil Panel by dragging the bottom handle or tapping it.
+
+Optional bottom buttons can open the camera, switch the flashlight, open Veil settings or close the panel. They are off by default.
 
 Your launcher, status bar, and system Quick Settings remain in place.
 

@@ -22,6 +22,7 @@ public final class ShadeWindowController {
  private PanelContentViewport viewport;
  private ShadeView content;
  private View dismissHandle;
+ private BottomPanelActions bottomActions;
  private View dismissMark;
  private FrameLayout handleGuard;
  private CurtainMotion curtain;
@@ -286,6 +287,8 @@ public final class ShadeWindowController {
    root.setClipBounds(new android.graphics.Rect(0,statusHeight,width(),curtainHeight()));
   }
   content.setPadding(content.getPaddingLeft(),content.getPaddingTop(),content.getPaddingRight(),content.getPaddingBottom()+dp(88));addDismissHandle();
+  bottomActions=BottomPanelActions.create(service,this::animateClose,curtainHeight(),statusHeight);
+  if(bottomActions!=null){root.addView(bottomActions,bottomActions.placement());if(com.ubai.veilpanel.config.BottomActionOptions.fade(service))viewport.setBottomFade(dp(com.ubai.veilpanel.config.BottomActionOptions.bottom(service)+com.ubai.veilpanel.config.BottomActionOptions.size(service)),dp(64));content.setPadding(content.getPaddingLeft(),content.getPaddingTop(),content.getPaddingRight(),content.getPaddingBottom()+Math.max(0,bottomActions.reservedBottom()-dp(88)));}
   content.onShown();root.setFocusableInTouchMode(true);root.requestFocus();scroll.setAlpha(1f);
   // Material position listeners run before recording the shared content.
   if(beneathStatus)backdrop.mirrorStatusContent(viewport,statusHeight);
@@ -353,7 +356,7 @@ public final class ShadeWindowController {
   // The visible line stays in the moving sheet; the captured touch stream
   // keeps reaching this fixed guard even after the finger leaves its bounds.
   handleGuard=new FrameLayout(service);handleGuard.setContentDescription(handle.getContentDescription());handleGuard.setClickable(true);handleGuard.setFocusable(true);handleGuard.setOnClickListener(v->handle.performClick());handleGuard.setOnTouchListener(this::handleTouch);handle.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
-  WindowManager.LayoutParams grab=new WindowManager.LayoutParams(actualWidth,dp(grabHeight),WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY,WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE|WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL|WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,PixelFormat.TRANSLUCENT);
+  WindowManager.LayoutParams grab=new WindowManager.LayoutParams(com.ubai.veilpanel.config.BottomActionOptions.handleGuardWidth(service,width(),actualWidth),dp(grabHeight),WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY,WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE|WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL|WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,PixelFormat.TRANSLUCENT);
   int navigationInset=Math.max(0,manager.getCurrentWindowMetrics().getBounds().height()-curtainHeight());
   grab.gravity=Gravity.BOTTOM|Gravity.CENTER_HORIZONTAL;grab.y=dp(bottom-below)+navigationInset;grab.setFitInsetsTypes(0);grab.layoutInDisplayCutoutMode=WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS;grab.setTitle("VeilPanelHandleGuard");manager.addView(handleGuard,grab);
  }
@@ -404,6 +407,7 @@ public final class ShadeWindowController {
   stopOpeningSuppression();handler.removeCallbacks(uncoverStatus);setStatusRecoveryCovered(false);handler.removeCallbacks(nativeHandoff);routePending=false;edgePull=false;edgeRight=false;edgeStreamActive=false;tracking=false;openingStreamActive=false;expanded=false;closing=false;
   if(curtain!=null){curtain.cancel();curtain=null;}
   if(handleVelocity!=null){handleVelocity.recycle();handleVelocity=null;}handleDragging=false;
+  if(bottomActions!=null){bottomActions.close();if(root!=null)root.removeView(bottomActions);bottomActions=null;}
   if(handleGuard!=null){manager.removeViewImmediate(handleGuard);handleGuard=null;}
   if(content!=null){content.onHidden();content=null;}
   if(root!=null&&scroll!=null){scroll.animate().withEndAction(null).cancel();if(viewport!=null)root.removeView(viewport);}scroll=null;viewport=null;

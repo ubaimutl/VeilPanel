@@ -10,14 +10,14 @@ import org.json.JSONObject;
  * wallpaper files, recovery behavior, or saved font files are changed. */
 public final class PanelThemePresets {
     private PanelThemePresets(){}
-    public static final String[] IDS={"minimal","frosted","glass","readable","demo"};
-    public static final String[] NAMES={"Minimal","Frosted","Glass","Readable","Demo"};
-    public static final String[] DESCRIPTIONS={"Compact, clean cards","Soft frost and rounded cards","Translucent, iOS-inspired glass","Larger text and stronger contrast","Compact glass cards with a bold clock"};
+    public static final String[] IDS={"minimal","frosted","glass","readable","demo","orbit","editorial","slate","air","nocturne"};
+    public static final String[] NAMES={"Minimal","Frosted","Glass","Readable","Demo","Orbit","Editorial","Slate","Air","Nocturne"};
+    public static final String[] DESCRIPTIONS={"Compact, clean cards","Soft frost and rounded cards","Translucent, iOS-inspired glass","Larger text and stronger contrast","Compact glass cards with a bold clock","Sculpted clock and generous rounded cards","Serif text, small corners and wide margins","Compact cards, small corners and a bold clock","Lightweight type and spacious frosted cards","Bold right-aligned clock above solid cards"};
     private static Map<String,Object> base(){
         Map<String,Object> values=new LinkedHashMap<>();
         for(PanelAppearance.Option option:PanelAppearance.OPTIONS)values.put(option.key,option.initial);
         values.put("font_family","system");values.put("dynamic",true);
-        values.put("blur",24);values.put("glass_opacity",72);
+        values.put("card_blur",0);values.put("blur",24);values.put("glass_opacity",72);
         values.put("reference_glass",false);values.put("kyant_liquid_glass",false);values.put("experimental_glass",false);
         values.put("description_brightness",30);
         values.put("header_clock_visible",true);values.put("header_date_visible",true);
@@ -46,6 +46,25 @@ public final class PanelThemePresets {
             case "readable":
                 v.put("glass_opacity",98);v.put("headline_size",20);v.put("body_size",18);v.put("time_size",14);v.put("icon_size",48);
                 v.put("card_height",104);v.put("card_padding",18);v.put("card_gap",12);v.put("clock_size",48);v.put("description_brightness",85);break;
+            case "orbit":
+                v.put("reference_glass",true);v.put("blur",28);v.put("glass_opacity",82);
+                v.put("clock_size",104);v.put("header_clock_style","sculpted");v.put("header_clock_weight",400);
+                v.put("header_clock_alignment","center");v.put("header_date_alignment","center");v.put("header_clock_top_space",-12);v.put("header_clock_bottom_space",28);
+                v.put("card_radius",40);v.put("card_padding",18);v.put("card_gap",16);v.put("side_margin",22);v.put("card_height",96);v.put("icon_size",40);break;
+            case "editorial":
+                v.put("font_family","serif");v.put("glass_opacity",98);v.put("blur",8);
+                v.put("clock_size",80);v.put("header_clock_weight",400);v.put("header_clock_spacing",20);v.put("header_date_size",15);v.put("header_date_weight",600);
+                v.put("card_radius",8);v.put("card_padding",20);v.put("card_gap",14);v.put("side_margin",28);v.put("icon_size",32);v.put("headline_size",18);v.put("body_size",16);v.put("time_size",12);v.put("preview_lines",2);break;
+            case "slate":
+                v.put("blur",0);v.put("glass_opacity",100);v.put("clock_size",44);v.put("header_clock_weight",700);v.put("header_clock_bottom_space",12);v.put("header_date_size",14);
+                v.put("card_radius",10);v.put("card_height",64);v.put("card_padding",10);v.put("card_gap",4);v.put("side_margin",16);v.put("icon_size",30);v.put("headline_size",14);v.put("body_size",14);v.put("time_size",11);v.put("preview_lines",2);v.put("header_gap",12);break;
+            case "air":
+                v.put("reference_glass",true);v.put("blur",36);v.put("glass_opacity",76);v.put("clock_size",64);v.put("header_clock_weight",300);v.put("header_date_size",14);
+                v.put("header_clock_bottom_space",32);v.put("card_radius",32);v.put("card_padding",18);v.put("card_gap",18);v.put("side_margin",20);v.put("card_height",96);v.put("icon_size",36);v.put("font_weight",400);v.put("description_brightness",60);break;
+            case "nocturne":
+                v.put("glass_opacity",98);v.put("blur",20);v.put("clock_size",104);v.put("header_clock_style","liquid");v.put("header_clock_weight",900);v.put("header_clock_spacing",15);
+                v.put("header_clock_alignment","end");v.put("header_date_alignment","end");v.put("header_date_weight",600);v.put("header_clock_top_space",-20);v.put("header_clock_bottom_space",24);
+                v.put("clock_glass_frost",85);v.put("clock_glass_refraction",4);v.put("clock_glass_highlight",50);v.put("card_radius",20);v.put("card_padding",16);v.put("card_gap",10);v.put("side_margin",24);v.put("icon_size",36);v.put("description_brightness",65);break;
             case "demo":
                 v.put("control_borders",false);v.put("control_surface_size",29);v.put("control_icon_size",18);
                 v.put("blur",0);

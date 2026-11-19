@@ -22,6 +22,11 @@ public class ExperimentalBackdropTest {
   java.io.File selected=new java.io.File(context.getCacheDir(),"adjustable.png");try(java.io.FileOutputStream output=new java.io.FileOutputStream(selected)){original.compress(Bitmap.CompressFormat.PNG,100,output);}PowerSaverBackdrop.importImage(context,android.net.Uri.fromFile(selected));
   assertTrue(PowerSaverBackdrop.adjustable(context));assertEquals(Color.BLACK,PowerSaverBackdrop.loadAtBlur(context,0).getPixel(18,20));int soft=Color.red(PowerSaverBackdrop.loadAtBlur(context,12).getPixel(18,20));assertTrue(soft>0&&soft<255);assertSame(PowerSaverBackdrop.loadAtBlur(context,12),PowerSaverBackdrop.loadAtBlur(context,12));assertEquals(Color.BLACK,PowerSaverBackdrop.loadAtBlur(context,0).getPixel(18,20));PowerSaverBackdrop.clear(context);assertFalse(PowerSaverBackdrop.adjustable(context));selected.delete();
  }
+ @Test public void olderSavedWallpaperCanStillReceiveAdditionalBlur() throws Exception{
+  Context context=RuntimeEnvironment.getApplication();PowerSaverBackdrop.clear(context);Bitmap saved=Bitmap.createBitmap(41,41,Bitmap.Config.ARGB_8888);saved.eraseColor(Color.BLACK);for(int y=0;y<41;y++)for(int x=20;x<41;x++)saved.setPixel(x,y,Color.WHITE);
+  try(var output=new java.io.FileOutputStream(new java.io.File(context.getFilesDir(),"power-saver-backdrop.png"))){saved.compress(Bitmap.CompressFormat.PNG,100,output);}
+  assertFalse(PowerSaverBackdrop.adjustable(context));assertEquals(Color.BLACK,PowerSaverBackdrop.loadAtBlur(context,0).getPixel(18,20));assertTrue(Color.red(PowerSaverBackdrop.loadAtBlur(context,20).getPixel(18,20))>0);PowerSaverBackdrop.clear(context);
+ }
  @Test public void experimentsDefaultOffAndDoNotResetExistingPreferences(){
   Context context=RuntimeEnvironment.getApplication();var prefs=context.getSharedPreferences("veil_panel",0);prefs.edit().clear().putInt("glass_opacity",72).putInt("icon_size",44).commit();
   assertFalse(ExperimentalGlass.enabled(context));prefs.edit().putBoolean("experimental_glass",true).putBoolean("experimental_motion",true).commit();assertTrue(ExperimentalGlass.enabled(context));prefs.edit().putBoolean("experimental_glass",false).putBoolean("experimental_motion",false).commit();assertFalse(ExperimentalGlass.enabled(context));assertEquals(72,prefs.getInt("glass_opacity",0));assertEquals(44,prefs.getInt("icon_size",0));prefs.edit().clear().commit();

@@ -14,7 +14,11 @@ public final class NotificationCardSurface {
   return Math.max(1,Math.round((available-Math.round(2*PanelAppearance.get(context,"side_margin")*density))*PanelAppearance.get(context,"card_width")/100f));
  }
  public static Drawable create(Context context){
-  float radius=radius(context);var prefs=context.getSharedPreferences("veil_panel",0);int opacity=prefs.getInt("glass_opacity",66);
+  return create(context,context.getSharedPreferences("veil_panel",0).getInt("glass_opacity",66));
+ }
+ public static Drawable opaque(Context context){return create(context,100);}
+ private static Drawable create(Context context,int opacity){
+  float radius=radius(context);var prefs=context.getSharedPreferences("veil_panel",0);
   // The lens uses this same frosted fallback when its wallpaper backdrop is unavailable.
   if(prefs.getBoolean("reference_glass",false)||LiquidGlassOptions.enabled(context))return new ReferenceGlassDrawable(context,radius,opacity);
   if(ExperimentalGlass.enabled(context))return ExperimentalGlass.surface(context,radius,opacity,false);

@@ -23,7 +23,9 @@ Android’s automatic app backup is disabled for Veil. You can make your own bac
 
 **Vibration** provides a short cue when the optional swipe-up-to-close gesture is ready. It follows Android’s touch-vibration setting and needs no permission prompt.
 
-Veil does not ask for screen recording, root, Shizuku, camera access or a computer connection. Quick settings such as Wi-Fi and the flashlight remain in your phone’s original panel.
+**Camera permission** is optional and used only for the bottom flashlight shortcut. Veil switches the flash without opening a camera, taking photos or recording video. You are prompted only when you explicitly choose flashlight access. The separate Camera shortcut opens your phone’s camera app.
+
+Veil does not ask for screen recording, root, Shizuku or a computer connection. Your phone’s original quick-settings panel remains available on the right.
 
 An enabled gesture-navigation service can ask Veil to close its open panel. This lets a navigation swipe dismiss the panel without sending you home from the app underneath. That request does not give the gesture app access to your notifications or settings.
 

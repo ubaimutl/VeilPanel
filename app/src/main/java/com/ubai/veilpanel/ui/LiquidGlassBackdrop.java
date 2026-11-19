@@ -14,6 +14,7 @@ import java.util.concurrent.Executors;
 final class LiquidGlassBackdrop {
     private static final ExecutorService IMAGES=Executors.newSingleThreadExecutor();
     private final View owner;
+    private final String blurKey;
     private final ArrayList<Watch> cards=new ArrayList<>();
     private final int[] location=new int[2],origin=new int[2];
     private Bitmap bitmap;
@@ -28,15 +29,17 @@ final class LiquidGlassBackdrop {
         int x=Integer.MIN_VALUE,y=Integer.MIN_VALUE,w,h;
         Watch(View view,boolean persistent){this.view=new WeakReference<>(view);this.persistent=persistent;}
     }
-    LiquidGlassBackdrop(View owner){this.owner=owner;}
+    LiquidGlassBackdrop(View owner){this(owner,"liquid_blur");}
+    LiquidGlassBackdrop(View owner,String blurKey){this.owner=owner;this.blurKey=blurKey;}
     Bitmap bitmap(){return bitmap;}
     void watch(View view){cards.add(new Watch(view,false));}
     void watchPersistent(View view){cards.add(new Watch(view,true));}
     void resetCards(){cards.removeIf(watch->!watch.persistent);}
     void open(){
-        if(!LiquidGlassOptions.enabled(owner.getContext())&&!"liquid".equals(owner.getContext().getSharedPreferences("veil_panel",0).getString("header_clock_style","plain")))return;
+        if("card_blur".equals(blurKey)){if(LiquidGlassOptions.enabled(owner.getContext())||owner.getContext().getSharedPreferences("veil_panel",0).getInt(blurKey,0)<=0)return;}
+        else if(!LiquidGlassOptions.enabled(owner.getContext())&&!"liquid".equals(owner.getContext().getSharedPreferences("veil_panel",0).getString("header_clock_style","plain")))return;
         if(!listening){owner.getViewTreeObserver().addOnPreDrawListener(preDraw);listening=true;}
-        int request=++generation,blur=LiquidGlassOptions.get(owner.getContext(),"liquid_blur");
+        int request=++generation,blur="card_blur".equals(blurKey)?Math.max(0,Math.min(64,owner.getContext().getSharedPreferences("veil_panel",0).getInt(blurKey,0))):LiquidGlassOptions.get(owner.getContext(),"liquid_blur");
         IMAGES.execute(()->{
             Bitmap loaded=null;
             try{loaded=PowerSaverBackdrop.loadAtBlur(owner.getContext(),blur);}catch(RuntimeException|OutOfMemoryError unavailable){}

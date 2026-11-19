@@ -9,9 +9,9 @@ public class PanelThemePresetsTest {
  @Test public void allThemesAreVisualOnlyAndUndoRestoresTheExactPreviousLook(){
   for(String id:PanelThemePresets.IDS){
    var prefs=context.getSharedPreferences("veil_panel",0);
-   prefs.edit().clear().putInt("split",73).putBoolean("fullscreen_two_swipe",false).putBoolean("native_edge_recovery",false).putBoolean("recovery_status_cover",false).putBoolean("show_status_bar",false).putInt("dismiss_handle_bottom",9).putString("font_family","custom").putInt("header_clock_weight",900).putInt("blur",47).commit();
+   prefs.edit().clear().putInt("split",73).putBoolean("fullscreen_two_swipe",false).putBoolean("native_edge_recovery",false).putBoolean("recovery_status_cover",false).putBoolean("show_status_bar",false).putInt("dismiss_handle_bottom",9).putString("font_family","custom").putInt("header_clock_weight",900).putInt("blur",47).putBoolean("bottom_actions_enabled",true).putString("bottom_action_left","close").putInt("bottom_action_size",60).commit();
    var before=prefs.getAll();PanelThemePresets.apply(context,id);
-   assertEquals(73,prefs.getInt("split",0));assertFalse(prefs.getBoolean("fullscreen_two_swipe",true));assertFalse(prefs.getBoolean("native_edge_recovery",true));assertFalse(prefs.getBoolean("recovery_status_cover",true));assertFalse(prefs.getBoolean("show_status_bar",true));assertEquals(9,prefs.getInt("dismiss_handle_bottom",0));
+   assertTrue(prefs.getBoolean("bottom_actions_enabled",false));assertEquals("close",prefs.getString("bottom_action_left",""));assertEquals(60,prefs.getInt("bottom_action_size",0));assertEquals(73,prefs.getInt("split",0));assertFalse(prefs.getBoolean("fullscreen_two_swipe",true));assertFalse(prefs.getBoolean("native_edge_recovery",true));assertFalse(prefs.getBoolean("recovery_status_cover",true));assertFalse(prefs.getBoolean("show_status_bar",true));assertEquals(9,prefs.getInt("dismiss_handle_bottom",0));
    assertTrue(PanelThemePresets.canUndo(context));assertTrue(PanelThemePresets.undo(context));assertEquals(before,prefs.getAll());assertFalse(PanelThemePresets.canUndo(context));
   }
  }

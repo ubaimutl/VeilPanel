@@ -166,7 +166,7 @@ public final class PanOSPTheme {
     public static int notificationPrimaryText(Context context) {
         return readableColor(
                 prefs(context).getThemePrimaryTextColor(),
-                notificationBackground(context),
+                GlassContrast.textBackground(context),
                 4.5
         );
     }
@@ -174,8 +174,8 @@ public final class PanOSPTheme {
     public static int notificationSecondaryText(Context context) {
         return readableColor(
                 prefs(context).getThemeSecondaryTextColor(),
-                notificationBackground(context),
-                3.0
+                GlassContrast.textBackground(context),
+                4.5
         );
     }
 
